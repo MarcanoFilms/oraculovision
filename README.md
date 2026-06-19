@@ -27,7 +27,7 @@ Filosofía: **Don't Trust, Verify**.
 ### Desde el repositorio
 
 ```bash
-git clone https://github.com/your-username/oraculovision.git
+git clone https://github.com/MarcanoFilms/oraculovision.git
 cd oraculovision
 python -m venv .venv
 source .venv/bin/activate
