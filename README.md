@@ -1,4 +1,5 @@
 # OraculoVision
+<img width="1920" height="1056" alt="image" src="https://github.com/user-attachments/assets/31233dd5-727b-44ec-90f8-2bb2b4364287" />
 
 Terminal dashboard (TUI) for sovereign operators running **Bitcoin Knots** with **BIP-110** enabled and **DATUM** for solo mining.
 
@@ -73,6 +74,8 @@ This creates `~/.local/bin/oraculovision` pointing at the project's virtual envi
 | `Tab` | Move focus between panels |
 
 ### BIP-110 Detector
+<img width="968" height="599" alt="image" src="https://github.com/user-attachments/assets/509b9eac-7ccf-4b8c-8cb5-cb1c858b1625" />
+
 
 | Key | Action |
 |-----|--------|
@@ -80,6 +83,8 @@ This creates `~/.local/bin/oraculovision` pointing at the project's virtual envi
 | `Enter` | Open block detail modal |
 
 ### Block modal
+
+<img width="1912" height="1031" alt="image" src="https://github.com/user-attachments/assets/81f9ee7e-d941-44a5-8b2a-21caac40cd9e" />
 
 | Key | Action |
 |-----|--------|
@@ -115,6 +120,7 @@ See `config.example.toml` for all available options.
 | `ORACULOVISION_CONFIG` | Path to `config.toml` |
 
 ## Mempool Glass
+<img width="901" height="368" alt="image" src="https://github.com/user-attachments/assets/b4e40f9a-1614-4047-b687-a853fed352d8" />
 
 Analyzes the **current Block Template** (`getblocktemplate`) — the transactions your Knots+BIP-110 node would include in the next block. It does not sample the mempool.
 
@@ -128,10 +134,14 @@ Categories:
 Displays: `Based on Block Template #HEIGHT · N txs · X% max weight`
 
 ## Block Template
+<img width="892" height="255" alt="image" src="https://github.com/user-attachments/assets/d5d7818e-3903-4dc4-8479-de010e2581db" />
+
 
 Compact GBT summary (height, txs, weight, coinbase, fees) and **top 5** transactions by fee rate. Press `t` to refresh.
 
 ## DATUM
+<img width="895" height="390" alt="image" src="https://github.com/user-attachments/assets/ff5df15e-edae-4610-8936-0f49849d9fbf" />
+
 
 ```bash
 sudo systemctl enable --now datum
