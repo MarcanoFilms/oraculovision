@@ -30,7 +30,7 @@ class SplashScreen(ModalScreen):
     AUTO_DISMISS_SECONDS = 2.5
 
     BINDINGS = [
-        Binding("escape", "dismiss_splash", show=False),
+        Binding("escape", "dismiss", show=False),
     ]
 
     def compose(self) -> ComposeResult:
@@ -54,10 +54,15 @@ class SplashScreen(ModalScreen):
 
     def _auto_dismiss(self) -> None:
         self.styles.animate("opacity", 0.0, duration=0.4)
-        self.set_timer(0.4, self.dismiss)
+        self.set_timer(0.4, self._safe_dismiss)
 
-    def action_dismiss_splash(self) -> None:
-        self.call_after_refresh(self.dismiss)
+    def _safe_dismiss(self) -> None:
+        # dismiss() returns an AwaitComplete. Discarding it here (returning None)
+        # prevents Textual's invoke() from awaiting it while this screen is still
+        # the active message pump, which would trigger ScreenError.
+        self.dismiss()
 
-    def on_key(self, event) -> None:
-        self.call_after_refresh(self.dismiss)
+    async def on_key(self, event) -> None:
+        # action_dismiss (built into Screen) calls self.dismiss() without awaiting
+        # the AwaitComplete, which is the only safe way from a message handler.
+        await self.action_dismiss()
