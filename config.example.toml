@@ -97,3 +97,31 @@ enabled = ["builtin"]
 scantxoutset_timeout = 90.0
 max_vin_lookups = 4
 mempool_scan_limit = 30
+
+[ui]
+# UI/UX presentation settings. All keys have safe defaults; existing
+# config.toml files work unmodified even without this section.
+
+# Dashboard mode: "pro" (all 8 screens, default) or "lite" (single-screen
+# overview aimed at first-time node runners). Togglable at runtime via
+# Ctrl+P → "Toggle Lite/Pro mode" or the sidebar menu.
+mode = "pro"
+
+# Color theme: "oracle" (default cyberpunk palette), "stream" (high-contrast
+# for screen recording / YouTube at 1080p), or "dark" (Textual system dark).
+theme = "oracle"
+
+# Animate panel opacity briefly when switching between the 8 screens.
+# Disable for Pi-class hardware or remote SSH sessions.
+screen_transitions = true
+
+# Show ASCII-art splash screen on launch (auto-dismisses after 2 s or keypress).
+splash = true
+
+# Show first-open contextual tooltips per panel (dismissed permanently after
+# first view; stored in ~/.local/share/oraculovision/tooltips.json).
+tooltips = true
+
+# Rolling buffer size for Sparkline charts (peer count, mempool MB).
+# Each sample ≈ refresh_interval_seconds apart.  60 ≈ 30 minutes at 30 s.
+sparkline_samples = 60

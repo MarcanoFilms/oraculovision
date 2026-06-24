@@ -100,6 +100,11 @@ class SovereignStatusBar(Static):
                 f" PRUNED #{snap.prune_height:,} ",
                 style="bold yellow on rgb(20,20,24)",
             )
+        elif snap.tx_index:
+            text.append(
+                " ARCHIVAL ",
+                style="bold rgb(61,214,140) on rgb(20,20,24)",
+            )
 
         return text
 

@@ -102,6 +102,18 @@ class ExportConfig:
 
 
 @dataclass
+class UIConfig:
+    """UI presentation and UX settings."""
+
+    mode: str = "pro"
+    theme: str = "oracle"
+    screen_transitions: bool = True
+    splash: bool = True
+    tooltips: bool = True
+    sparkline_samples: int = 60
+
+
+@dataclass
 class AppConfig:
     refresh: RefreshConfig = field(default_factory=RefreshConfig)
     alerts: AlertsConfig = field(default_factory=AlertsConfig)
@@ -114,6 +126,7 @@ class AppConfig:
     export: ExportConfig = field(default_factory=ExportConfig)
     address: AddressConfig = field(default_factory=AddressConfig)
     detectors: DetectorsConfig = field(default_factory=DetectorsConfig)
+    ui: UIConfig = field(default_factory=UIConfig)
     profiles: dict[str, NodeProfile] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -210,6 +223,22 @@ def load_config() -> AppConfig:
             cfg.detectors = DetectorsConfig(
                 enabled=[str(name) for name in enabled],
             )
+
+    if ui := data.get("ui"):
+        mode = str(ui.get("mode", "pro")).lower()
+        if mode not in ("lite", "pro"):
+            mode = "pro"
+        theme = str(ui.get("theme", "oracle")).lower()
+        if theme not in ("oracle", "stream", "dark"):
+            theme = "oracle"
+        cfg.ui = UIConfig(
+            mode=mode,
+            theme=theme,
+            screen_transitions=bool(ui.get("screen_transitions", True)),
+            splash=bool(ui.get("splash", True)),
+            tooltips=bool(ui.get("tooltips", True)),
+            sparkline_samples=max(10, int(ui.get("sparkline_samples", 60))),
+        )
 
     cfg.profiles = load_profiles(data)
     cfg.__post_init__()
