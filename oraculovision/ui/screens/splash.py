@@ -54,10 +54,10 @@ class SplashScreen(ModalScreen):
 
     def _auto_dismiss(self) -> None:
         self.styles.animate("opacity", 0.0, duration=0.4)
-        self.set_timer(0.4, lambda: self.dismiss())
+        self.set_timer(0.4, self.dismiss)
 
     def action_dismiss_splash(self) -> None:
-        self.dismiss()
+        self.call_after_refresh(self.dismiss)
 
     def on_key(self, event) -> None:
-        self.dismiss()
+        self.call_after_refresh(self.dismiss)
