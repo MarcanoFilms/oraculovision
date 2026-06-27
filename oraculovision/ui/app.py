@@ -590,6 +590,10 @@ class SovereignApp(App):
     def _on_ocean_address_set(self, address: str | None) -> None:
         if address is None:
             return
+        # Persist so the address survives restarts (user can change anytime).
+        from oraculovision.state import save_ocean_address
+        save_ocean_address(address)
+        self.config.ocean.address = address.strip()
         mining = self.query_one("#mining", MiningScreen)
         mining.set_ocean_address(address)
         try:

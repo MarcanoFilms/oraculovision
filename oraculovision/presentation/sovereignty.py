@@ -34,6 +34,7 @@ class SovereigntySnapshot:
     pruned: bool = False
     prune_height: int = 0
     tx_index: bool = False
+    network_hashrate_ehs: float = 0.0
     error: str | None = None
 
     @property
@@ -79,6 +80,12 @@ def fetch_sovereignty_snapshot(
         snap.tx_index = bool(index_info.get("txindex", {}).get("synced", False))
     except Exception:
         snap.tx_index = False
+
+    try:
+        mining = client.call("getmininginfo")
+        snap.network_hashrate_ehs = float(mining.get("networkhashps", 0.0)) / 1e18
+    except Exception:
+        snap.network_hashrate_ehs = 0.0
 
     return snap
 

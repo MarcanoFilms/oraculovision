@@ -133,8 +133,6 @@ class HelpScreen(ModalScreen):
     #help-dialog {
         width: 72;
         height: 85%;
-        background: #111;
-        border: thick #ffd700;
         padding: 1 2;
     }
     #help-content {

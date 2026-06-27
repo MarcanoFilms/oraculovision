@@ -26,28 +26,22 @@ class OceanAddressScreen(ModalScreen[str | None]):
         width: 78;
         height: auto;
         max-height: 14;
-        background: #111;
-        border: thick #ffd700;
         padding: 1 2;
     }
     #ocean-title {
-        color: #ffd700;
         text-style: bold;
         margin-bottom: 1;
     }
     #ocean-hint {
-        color: #888;
         margin-bottom: 1;
     }
     #ocean-address-input {
         margin-bottom: 1;
     }
     #ocean-error {
-        color: #ff6b6b;
         height: 1;
     }
     #ocean-status {
-        color: #3dd68c;
         height: 1;
     }
     """

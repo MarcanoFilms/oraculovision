@@ -73,7 +73,6 @@ class PoliciesScreen(BaseScreen):
     }
     PoliciesScreen #policies-header {
         height: auto;
-        color: rgb(255, 102, 0);
         text-style: bold;
         padding: 0 1;
     }
@@ -102,22 +101,17 @@ class PoliciesScreen(BaseScreen):
     PoliciesScreen #sim-intro {
         height: auto;
         padding-bottom: 1;
-        color: #ccc;
     }
     PoliciesScreen #sim-table {
         height: 1fr;
-        border: solid #333;
     }
     PoliciesScreen #sim-detail {
         height: auto;
         max-height: 10;
-        border: solid #333;
         padding: 1 1;
         margin-top: 1;
-        color: #aaa;
     }
     PoliciesScreen .panel-title {
-        color: #ffd700;
         text-style: bold;
         padding-bottom: 1;
     }

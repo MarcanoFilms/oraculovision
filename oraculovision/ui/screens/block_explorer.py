@@ -14,7 +14,7 @@ from oraculovision.node.client import BitcoinCLIError
 from oraculovision.screens.block_detail_modal import BlockDetailModal
 from oraculovision.services.block_service import BlockQueryError, BlockService
 from oraculovision.ui.screens.base import BaseScreen
-from oraculovision.utils.markup import safe_markup_text
+from oraculovision.utils.markup import format_pool_badge, safe_markup_text
 
 _STATUS_STYLE = {
     "CLEAN": "green",
@@ -72,7 +72,6 @@ class BlockExplorerScreen(BaseScreen):
     }
     BlockExplorerScreen #explorer-header {
         height: auto;
-        color: #ffd700;
         text-style: bold;
         padding: 0 1;
     }
@@ -82,34 +81,30 @@ class BlockExplorerScreen(BaseScreen):
     }
     BlockExplorerScreen #block-search {
         width: 1fr;
-        border: solid #ffd700;
     }
     BlockExplorerScreen #explorer-status {
         height: auto;
         padding: 0 1;
-        color: #aaa;
     }
     BlockExplorerScreen #explorer-summary {
         height: auto;
         padding: 1 1;
-        border: solid #333;
         margin: 0 1;
-        color: #e0e0e0;
     }
     BlockExplorerScreen #explorer-hint {
         height: auto;
-        color: #666;
+        padding: 0 1;
+    }
+    BlockExplorerScreen #explorer-body {
+        height: 1fr;
         padding: 0 1;
     }
     BlockExplorerScreen #explorer-table {
         height: 1fr;
-        margin: 0 1 1 1;
-        border: solid #ffd700;
     }
     BlockExplorerScreen .search-label {
         width: auto;
         padding-right: 1;
-        color: #ffd700;
         content-align: center middle;
     }
     """
@@ -276,7 +271,7 @@ class BlockExplorerScreen(BaseScreen):
             table.add_row(
                 f"{marker}{block.height}",
                 f"{block.hash[:12]}…",
-                block.miner_tag[:18],
+                format_pool_badge(block.miner_tag),
                 spam_cell,
                 status_cell,
                 str(block.violation_count),

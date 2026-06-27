@@ -36,10 +36,16 @@ class SplashScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         with Vertical(id="splash-box"):
             yield Static(_EYE_ART, id="splash-art")
-            yield Label("OraculoVision  v2.3", id="splash-title")
-            yield Label("Sovereign Bitcoin Dashboard", id="splash-tagline")
             yield Label(
-                "[dim]Don't Trust, Verify.[/]",
+                "[bold rgb(255,102,0)]OraculoVision[/]  [dim]v2.3[/]",
+                id="splash-title",
+            )
+            yield Label(
+                "[bold white]Sovereign Bitcoin Dashboard[/]",
+                id="splash-tagline",
+            )
+            yield Label(
+                "[dim cyan]BIP-110 · DATUM · Knots · Don't Trust, Verify[/]",
                 id="splash-hint",
             )
             yield Label(

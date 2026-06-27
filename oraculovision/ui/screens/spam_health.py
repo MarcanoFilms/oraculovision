@@ -42,16 +42,13 @@ class SpamHealthScreen(BaseScreen):
     }
     SpamHealthScreen #health-header {
         height: auto;
-        color: #ffd700;
         text-style: bold;
         padding: 0 1;
     }
     SpamHealthScreen #health-summary {
         height: auto;
-        border: solid #ffd700;
         padding: 1 2;
         margin: 0 1 1 1;
-        color: #e0e0e0;
     }
     SpamHealthScreen #health-body {
         height: 1fr;
@@ -60,14 +57,12 @@ class SpamHealthScreen(BaseScreen):
     SpamHealthScreen #health-chart-panel {
         width: 45%;
         height: 100%;
-        border: solid #333;
         padding: 0 1;
     }
     SpamHealthScreen #health-worst-panel {
         width: 55%;
         height: 100%;
         padding-left: 1;
-        border: solid #ffd700;
     }
     SpamHealthScreen #spam-chart {
         height: 1fr;
@@ -76,20 +71,12 @@ class SpamHealthScreen(BaseScreen):
         height: 1fr;
     }
     SpamHealthScreen .panel-title {
-        color: #ffd700;
         text-style: bold;
         padding: 1 0 0 0;
     }
     SpamHealthScreen #health-hint {
         height: auto;
-        color: #666;
         padding: 0 1;
-    }
-    SpamHealthScreen.health-poor #health-summary {
-        border: solid #ff6b6b;
-    }
-    SpamHealthScreen.health-degraded #health-summary {
-        border: solid #ffd700;
     }
     """
 

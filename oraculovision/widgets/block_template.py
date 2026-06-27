@@ -21,14 +21,9 @@ class BlockTemplatePanel(Static):
     BlockTemplatePanel {
         height: auto;
         max-height: 11;
-        border: solid #ffd700;
         padding: 0 2;
     }
-    BlockTemplatePanel .template-content {
-        color: #e0e0e0;
-    }
     BlockTemplatePanel .template-hint {
-        color: #666;
         height: 1;
     }
     """
@@ -77,7 +72,7 @@ class BlockTemplatePanel(Static):
                 f"{weight:,}w ({fill_pct:.1f}%)  "
                 f"cb {coinbase_btc:.4f}  fees {total_fees:.4f} BTC"
             ),
-            "[bold #ffd700]Top fee (sat/vB)[/]",
+            "[gold bold]Top fee (sat/vB)[/]",
         ]
 
         ranked = sorted(

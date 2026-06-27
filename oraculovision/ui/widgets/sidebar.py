@@ -36,13 +36,18 @@ class Sidebar(Static):
             yield Static(brand, classes="sov-nav-brand")
             items: list[ListItem] = []
             for tier, specs in screens_by_tier(lite_mode=self._lite_mode):
-                yield Static(TIER_LABELS.get(tier, tier.upper()), classes="sov-nav-tier")
-                for spec in specs:
+                for i, spec in enumerate(specs):
                     self._specs_by_id[spec.id] = spec
                     marker = "●" if spec.id == self._active_id else "○"
+                    
+                    widgets = []
+                    if i == 0:
+                        widgets.append(Static(TIER_LABELS.get(tier, tier.upper()), classes="sov-nav-tier-inline"))
+                    widgets.append(Static(f"[{spec.key}] {marker} {spec.label}", classes="sov-nav-item-text"))
+                    
                     items.append(
                         ListItem(
-                            Static(f"[{spec.key}] {marker} {spec.label}"),
+                            *widgets,
                             id=f"nav-{spec.id}",
                         )
                     )
@@ -65,7 +70,7 @@ class Sidebar(Static):
                 continue
             spec = self._specs_by_id[spec_id]
             marker = "●" if spec_id == self._active_id else "○"
-            item.query_one(Static).update(f"[{spec.key}] {marker} {spec.label}")
+            item.query_one(".sov-nav-item-text", Static).update(f"[{spec.key}] {marker} {spec.label}")
             if spec_id == self._active_id:
                 item.add_class("-active")
             else:

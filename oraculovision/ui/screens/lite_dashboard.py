@@ -26,14 +26,12 @@ class LiteDashboard(BaseScreen):
     DEFAULT_CSS = """
     LiteDashboard { layout: vertical; padding: 0 1; }
     LiteDashboard #lite-header {
-        color: #ffd700;
         text-style: bold;
         text-align: center;
         padding: 0 1 1 1;
         height: auto;
     }
     LiteDashboard #lite-alert {
-        color: #ff6b6b;
         text-align: center;
         height: auto;
         min-height: 1;
@@ -42,7 +40,6 @@ class LiteDashboard(BaseScreen):
     LiteDashboard #lite-metrics { height: auto; padding: 0 0 1 0; }
     LiteDashboard #lite-datum   { height: auto; max-height: 20; margin-top: 1; }
     LiteDashboard #lite-upgrade-hint {
-        color: #888;
         text-align: center;
         height: auto;
         padding: 1;

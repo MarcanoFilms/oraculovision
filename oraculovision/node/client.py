@@ -281,6 +281,11 @@ class NodeClient:
         finally:
             self.timeout = old_timeout
 
+    def get_net_totals(self) -> dict[str, Any]:
+        """Return cumulative network traffic stats (totalbytessent, totalbytesrecv)."""
+        result = self.call("getnettotals")
+        return result if isinstance(result, dict) else {}
+
     def is_available(self) -> tuple[bool, str | None]:
         try:
             self.get_block_count()

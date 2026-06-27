@@ -51,6 +51,7 @@ class BitcoinConfig:
 @dataclass
 class OceanConfig:
     address: str = ""
+    payout_threshold: float = 0.001
 
 
 @dataclass
@@ -114,6 +115,14 @@ class UIConfig:
 
 
 @dataclass
+class PyblockConfig:
+    """PyBLOCK community pool integration (third-party, opt-out)."""
+
+    community_blocks: bool = True
+    api_url: str = "https://pyblock.xyz:8443"
+
+
+@dataclass
 class AppConfig:
     refresh: RefreshConfig = field(default_factory=RefreshConfig)
     alerts: AlertsConfig = field(default_factory=AlertsConfig)
@@ -127,6 +136,7 @@ class AppConfig:
     address: AddressConfig = field(default_factory=AddressConfig)
     detectors: DetectorsConfig = field(default_factory=DetectorsConfig)
     ui: UIConfig = field(default_factory=UIConfig)
+    pyblock: PyblockConfig = field(default_factory=PyblockConfig)
     profiles: dict[str, NodeProfile] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -190,6 +200,7 @@ def load_config() -> AppConfig:
     if ocean := data.get("ocean"):
         cfg.ocean = OceanConfig(
             address=str(ocean.get("address", "")).strip(),
+            payout_threshold=float(ocean.get("payout_threshold", 0.001)),
         )
     if control := data.get("control"):
         cfg.control = ControlConfig(
@@ -239,6 +250,20 @@ def load_config() -> AppConfig:
             tooltips=bool(ui.get("tooltips", True)),
             sparkline_samples=max(10, int(ui.get("sparkline_samples", 60))),
         )
+
+    if pyblock := data.get("pyblock"):
+        cfg.pyblock = PyblockConfig(
+            community_blocks=bool(pyblock.get("community_blocks", True)),
+            api_url=str(pyblock.get("api_url", "https://pyblock.xyz:8443")),
+        )
+
+    # Remember the Ocean payout address across restarts when config.toml
+    # doesn't pin one (the user can always change it from the UI).
+    if not cfg.ocean.address:
+        from oraculovision.state import load_ocean_address
+        saved = load_ocean_address()
+        if saved:
+            cfg.ocean.address = saved
 
     cfg.profiles = load_profiles(data)
     cfg.__post_init__()

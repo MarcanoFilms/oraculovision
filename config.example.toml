@@ -125,3 +125,8 @@ tooltips = true
 # Rolling buffer size for Sparkline charts (peer count, mempool MB).
 # Each sample ≈ refresh_interval_seconds apart.  60 ≈ 30 minutes at 30 s.
 sparkline_samples = 60
+[pyblock]
+# Show community blocks found by the PyBLOCK DATUM pool (third-party data).
+# Your own node metrics always remain the sovereign source of truth.
+community_blocks = true
+api_url = "https://pyblock.xyz:8443"
