@@ -64,6 +64,25 @@ datadir = ""
 # Optional: press [o] in the dashboard to enter or change the address
 # for the current session (session override takes priority over this value).
 address = ""
+# Payout threshold in BTC, used for the "Progress" bar in the earnings panel.
+# Ocean reports this per-account; this is only the fallback when it doesn't.
+payout_threshold = 0.001
+
+[mining]
+# Local mining economics — all optional. Left at the defaults below, the
+# dashboard shows gross earnings only and nothing changes. Fill these in to
+# see pool-fee-adjusted and electricity-adjusted net earnings.
+# Total rig power draw in watts (e.g. a single Bitaxe ~15, an S19 ~3250).
+power_watts = 0.0
+# Electricity price per kWh, in the currency below.
+power_cost_per_kwh = 0.0
+# Currency label for power cost / profit figures.
+currency = "USD"
+# Pool fee percentage (Ocean is 0% on TIDES; some setups differ).
+pool_fee_pct = 0.0
+# BTC spot price in `currency`. Set this to also see power cost in sats and
+# a net profit/day figure; leave 0 to show gross-minus-fee sats only.
+btc_price = 0.0
 
 [control]
 # Read-only mode (default: true). When true, all node control/write RPCs

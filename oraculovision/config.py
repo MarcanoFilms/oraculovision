@@ -55,6 +55,22 @@ class OceanConfig:
 
 
 @dataclass
+class MiningConfig:
+    """Local mining economics for net-earnings estimates (all opt-in).
+
+    Left at defaults (zeros) the dashboard shows gross earnings only and
+    nothing changes. Fill these in to see pool-fee-adjusted and
+    electricity-adjusted net figures, DeepSea-style.
+    """
+
+    power_watts: float = 0.0
+    power_cost_per_kwh: float = 0.0
+    currency: str = "USD"
+    pool_fee_pct: float = 0.0
+    btc_price: float = 0.0
+
+
+@dataclass
 class ControlConfig:
     """Node control safety settings."""
 
@@ -129,6 +145,7 @@ class AppConfig:
     mempool_glass: MempoolGlassConfig = field(default_factory=MempoolGlassConfig)
     bitcoin: BitcoinConfig = field(default_factory=BitcoinConfig)
     ocean: OceanConfig = field(default_factory=OceanConfig)
+    mining: MiningConfig = field(default_factory=MiningConfig)
     control: ControlConfig = field(default_factory=ControlConfig)
     chain_health: ChainHealthConfig = field(default_factory=ChainHealthConfig)
     block_index: BlockIndexConfig = field(default_factory=BlockIndexConfig)
@@ -201,6 +218,14 @@ def load_config() -> AppConfig:
         cfg.ocean = OceanConfig(
             address=str(ocean.get("address", "")).strip(),
             payout_threshold=float(ocean.get("payout_threshold", 0.001)),
+        )
+    if mining := data.get("mining"):
+        cfg.mining = MiningConfig(
+            power_watts=max(0.0, float(mining.get("power_watts", 0))),
+            power_cost_per_kwh=max(0.0, float(mining.get("power_cost_per_kwh", 0))),
+            currency=str(mining.get("currency", "USD")),
+            pool_fee_pct=min(100.0, max(0.0, float(mining.get("pool_fee_pct", 0)))),
+            btc_price=max(0.0, float(mining.get("btc_price", 0))),
         )
     if control := data.get("control"):
         cfg.control = ControlConfig(
