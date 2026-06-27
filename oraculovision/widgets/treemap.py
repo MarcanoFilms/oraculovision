@@ -4,9 +4,10 @@ Renders the current GBT (getblocktemplate) as a squarified treemap: one cell
 per transaction, sized by weight, coloured by fee rate.  Wrapped in a
 box-drawing border with a title and tx count.
 
-Detail comes from *quadrant* block glyphs (▘▝▖▗▚▞█ …): each terminal character
-packs a 2×2 sub-pixel grid with two colours, doubling the horizontal resolution
-of the older half-block renderer for a finer, mempool-like texture.
+Detail comes from *sextant* block glyphs (🬀🬂🬞█ …, U+1FB00 range): each terminal
+character packs a 2×3 sub-pixel grid with two colours — btop-style density.
+That is six sub-pixels per cell (vs four for half-block quadrants), for a
+finer, higher-definition mempool-like texture.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from rich.text import Text
 from oraculovision.data.bitcoin import BitcoinCLI, BitcoinCLIError
 
 _CACHE_TTL = 30.0
-_MAX_CELLS = 700
+_MAX_CELLS = 900
 _cache: tuple[float, list[tuple[int, int]]] | None = None
 
 _BORDER_FG = "#26262b"
@@ -39,27 +40,27 @@ _BG = (12, 12, 14)
 _GUTTER_COLOR = (12, 12, 14)
 
 
-# 2x2 quadrant glyphs keyed by a 4-bit mask: TL=8, TR=4, BL=2, BR=1.
-# A set bit means that sub-pixel takes the foreground colour.
-_QUAD_GLYPHS = {
-    0b0000: " ",
-    0b1000: "▘",
-    0b0100: "▝",
-    0b0010: "▖",
-    0b0001: "▗",
-    0b1100: "▀",
-    0b0011: "▄",
-    0b1010: "▌",
-    0b0101: "▐",
-    0b1001: "▚",
-    0b0110: "▞",
-    0b1110: "▛",
-    0b1101: "▜",
-    0b1011: "▙",
-    0b0111: "▟",
-    0b1111: "█",
-}
-_QUAD_BITS = (8, 4, 2, 1)  # TL, TR, BL, BR
+# 2x3 sextant glyphs (Unicode "Symbols for Legacy Computing", U+1FB00..3B)
+# keyed by a 6-bit mask. Bit order is row-major: TL=1, TR=2, ML=4, MR=8,
+# BL=16, BR=32; a set bit means that sub-pixel takes the foreground colour.
+# Four combinations coincide with pre-existing block elements (blank, left
+# half ▌, right half ▐, full █) and are not in the U+1FB00 range.
+_SEXTANT_BITS = (1, 2, 4, 8, 16, 32)  # TL, TR, ML, MR, BL, BR
+_CELL_W, _CELL_H = 2, 3
+
+
+def _build_sextants() -> dict[int, str]:
+    table: dict[int, str] = {0: " ", 21: "▌", 42: "▐", 63: "█"}
+    codepoint = 0x1FB00
+    for mask in range(1, 63):
+        if mask in (21, 42):  # left/right columns are pre-existing chars
+            continue
+        table[mask] = chr(codepoint)
+        codepoint += 1
+    return table
+
+
+_SEXTANT_GLYPHS = _build_sextants()
 
 
 def _fetch_template_data(*, cli: BitcoinCLI | None = None) -> list[tuple[int, int]]:
@@ -157,22 +158,22 @@ def _dist(a, b) -> int:
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2
 
 
-def _quad_cell(pix) -> tuple[str, tuple[int, int, int], tuple[int, int, int]]:
-    """Reduce four sub-pixels to a (glyph, fg, bg) two-colour quadrant cell."""
+def _sextant_cell(pix) -> tuple[str, tuple[int, int, int], tuple[int, int, int]]:
+    """Reduce six sub-pixels to a (glyph, fg, bg) two-colour sextant cell."""
     uniq = list(dict.fromkeys(pix))
     if len(uniq) == 1:
-        return "█", uniq[0], uniq[0]
-    if len(uniq) == 2:
+        fg = bg = uniq[0]
+    elif len(uniq) == 2:
         fg, bg = uniq[0], uniq[1]
     else:
-        # Two-means on the four colours: anchor = first, other = farthest.
+        # Two-means on the colours: anchor = first, other = the farthest.
         fg = pix[0]
         bg = max(pix, key=lambda c: _dist(c, fg))
     mask = 0
     for i, p in enumerate(pix):
         if _dist(p, fg) <= _dist(p, bg):
-            mask |= _QUAD_BITS[i]
-    return _QUAD_GLYPHS[mask], fg, bg
+            mask |= _SEXTANT_BITS[i]
+    return _SEXTANT_GLYPHS[mask], fg, bg
 
 
 def render_block_treemap(width: int = 36, height: int = 15) -> Text | None:
@@ -191,9 +192,10 @@ def render_block_treemap(width: int = 36, height: int = 15) -> Text | None:
 
     iw = width - 2
     inner_lines = height - 2
-    # Sub-pixel canvas: 2 per char horizontally and vertically (quadrants).
-    sw = iw * 2
-    sh = inner_lines * 2
+    # Sub-pixel canvas: 2 wide × 3 tall per character (sextants), so each text
+    # row resolves 3 vertical sub-pixels — btop-grade definition.
+    sw = iw * _CELL_W
+    sh = inner_lines * _CELL_H
     rects = _squarify(values, 0, 0, sw, sh)
 
     grid = [[_BG for _ in range(sw)] for _ in range(sh)]
@@ -225,16 +227,18 @@ def render_block_treemap(width: int = 36, height: int = 15) -> Text | None:
 
     for cy in range(inner_lines):
         text.append("│", style=_BORDER_FG)
-        ry = cy * 2
+        ry = cy * _CELL_H
         for cx in range(iw):
-            rx = cx * 2
+            rx = cx * _CELL_W
             pix = (
-                grid[ry][rx],
-                grid[ry][rx + 1],
-                grid[ry + 1][rx],
-                grid[ry + 1][rx + 1],
+                grid[ry][rx],          # TL
+                grid[ry][rx + 1],      # TR
+                grid[ry + 1][rx],      # ML
+                grid[ry + 1][rx + 1],  # MR
+                grid[ry + 2][rx],      # BL
+                grid[ry + 2][rx + 1],  # BR
             )
-            glyph, fg, bg = _quad_cell(pix)
+            glyph, fg, bg = _sextant_cell(pix)
             text.append(
                 glyph,
                 style=f"#{fg[0]:02x}{fg[1]:02x}{fg[2]:02x} "
