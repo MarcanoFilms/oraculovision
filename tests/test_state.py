@@ -21,7 +21,8 @@ def test_load_empty_when_no_file(temp_state):
 
 
 def test_save_and_load_roundtrip(temp_state):
-    addr = "bc1qyqw74c488n39wfw3ctw0l2ujaa6q3sa39zvp3g"
+    # BIP-173 example address (a documented test vector, not a real wallet).
+    addr = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080"
     state.save_ocean_address(addr)
     assert state.load_ocean_address() == addr
 

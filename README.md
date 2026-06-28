@@ -5,6 +5,8 @@ Terminal dashboard (TUI) for sovereign operators running **Bitcoin Knots** with 
 
 Philosophy: **Don't Trust, Verify**.
 
+**v2.4** — DeepSea-inspired mining suite: net-earnings economics (electricity + pool fee, optional fiat profit/day), worker online/offline toast alerts, a payout-progress bar, per-worker ASIC detection, and a higher-definition (sextant, btop-grade) block-template treemap.
+
 **v2.3** — adds Sparkline trend charts, Sovereignty Score, animated alerts, Lite/Pro mode, stream recording theme, Command Palette, splash screen, and archival node awareness.
 
 ## Features
@@ -12,6 +14,11 @@ Philosophy: **Don't Trust, Verify**.
 | Panel / Feature | Description |
 |----------------|-------------|
 | **Node Status** | Sync, peers, mempool, UTXO set — with rolling **Sparkline** trend charts for peers and mempool |
+| **Mining Economics** | Net sat/day after pool fee + electricity, with optional fiat profit/day (`[mining]` config) |
+| **Worker Alerts** | Toast notifications when an Ocean worker stops hashing or comes back online |
+| **Payout Progress** | Visual bar tracking your unpaid balance toward the Ocean payout threshold |
+| **Worker ASIC Detection** | Per-worker table inferring the rig model (S19/S21/Whatsminer…) from worker names |
+| **Block Template Treemap** | mempool.space-style fee-rate treemap with btop-grade sextant rendering |
 | **Sovereignty Score** | Composite 0-100 headline metric (sync + peers + Knots + spam) with letter grade (A+…F) |
 | **BIP-110 Detector** | Spam score, status, miner tags, navigable table — animated red flash on new violation |
 | **Block Detail Modal** | Full per-block detail (Enter) |
