@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "oraculovision"
-version = "2.2.0a1"
+version = "2.4.0"
 description = "Terminal dashboard (TUI) for Bitcoin Knots + BIP-110 + DATUM operators"
 readme = "README.md"
 license = { text = "MIT" }
@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: System :: Monitoring",
 ]
 dependencies = [
-    "textual>=0.80.0",
+    "textual>=0.82.0",
     "textual-plotext>=0.2.0",
     "plotext>=5.2.8",
 ]
@@ -51,4 +51,7 @@ where = ["."]
 include = ["oraculovision*"]
 
 [tool.setuptools.package-data]
-oraculovision = ["theme.tcss", "ui/theme/sovereign.tcss"]
+oraculovision = ["theme.tcss", "ui/theme/sovereign.tcss", "ui/theme/stream.tcss"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

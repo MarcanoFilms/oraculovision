@@ -1,21 +1,24 @@
-/* OracleVision sovereign theme — PyBlock-aligned cyberpunk terminal */
+/* OraculoVision — Sovereign theme (default)
+   All color tokens live here. Widgets reference $variable-name.
+   Do NOT hardcode hex colors inside Python DEFAULT_CSS blocks.        */
 
-$bg-deep: rgb(10, 10, 12);
-$bg-panel: rgb(18, 18, 22);
-$bg-elevated: rgb(26, 26, 32);
+/* ─── Palette ──────────────────────────────────────────────────────── */
+$bg-deep:      rgb(10, 10, 12);
+$bg-panel:     rgb(16, 16, 20);
+$bg-elevated:  rgb(24, 24, 30);
 
-$accent-orange: rgb(255, 102, 0);
-$accent-gold: rgb(255, 215, 0);
-$accent-cyan: rgb(0, 220, 255);
-$accent-green: rgb(61, 214, 140);
-$accent-yellow: rgb(255, 200, 0);
-$accent-red: rgb(255, 80, 80);
+$accent-orange: rgb(247, 147, 26);  /* Bitcoin Orange #f7931a */
+$accent-gold:   rgb(255, 193, 7);   /* Modern Gold #ffc107 */
+$accent-cyan:   rgb(0, 180, 216);   /* Rich Cyan #00b4d8 */
+$accent-green:  rgb(46, 196, 182);  /* Emerald Green #2ec4b6 */
+$accent-yellow: rgb(255, 186, 8);   /* Amber Yellow #ffba08 */
+$accent-red:    rgb(230, 57, 70);   /* Crimson Red #e63946 */
 
-$border-dim: rgb(45, 45, 55);
-$text-primary: rgb(224, 224, 224);
-$text-dim: rgb(120, 120, 130);
+$border-dim:    rgb(38, 38, 48);
+$text-primary:  rgb(224, 224, 224);
+$text-dim:      rgb(120, 120, 130);
 
-/* --- Global chrome --- */
+/* ─── Global chrome ─────────────────────────────────────────────────── */
 Screen {
     background: $bg-deep;
 }
@@ -24,39 +27,40 @@ Header {
     background: $bg-elevated;
     color: $accent-orange;
     text-style: bold;
+    border-bottom: solid $border-dim;
 }
 
 Footer {
     background: $bg-elevated;
     color: $text-dim;
+    border-top: solid $border-dim;
+}
+
+DataTable {
+    background: transparent;
+    border: none;
 }
 
 DataTable > .datatable--header {
     background: $bg-elevated;
     color: $accent-gold;
+    text-style: bold;
 }
 
 DataTable > .datatable--cursor {
     background: rgb(40, 40, 50);
     color: $accent-cyan;
-}
-
-.status-clean {
-    color: $accent-green;
-}
-
-.status-suspicious {
-    color: $accent-yellow;
-}
-
-.status-violation {
-    color: $accent-red;
     text-style: bold;
 }
 
-/* --- Layout --- */
+.status-clean       { color: $accent-green; }
+.status-suspicious  { color: $accent-yellow; }
+.status-violation   { color: $accent-red; text-style: bold; }
+
+/* ─── Layout ────────────────────────────────────────────────────────── */
 #sovereign-status {
-    height: 1;
+    height: 2;
+    border-bottom: solid $border-dim;
 }
 
 #sovereign-shell {
@@ -92,32 +96,50 @@ DataTable > .datatable--cursor {
     height: 1fr;
 }
 
-DashboardScreen #metric-row {
-    height: auto;
+DashboardScreen #dash-headline {
+    height: 1;
+    background: $bg-elevated;
+    padding: 0 1;
+    border-bottom: solid $border-dim;
 }
 
-DashboardScreen #sov-brief {
-    max-height: 12;
+DashboardScreen #dash-alert {
+    height: auto;
+    min-height: 0;
+    color: $accent-red;
+    padding: 0 1;
+}
+
+DashboardScreen #dash-body {
+    height: 1fr;
+}
+
+DashboardScreen #dash-hint {
+    height: 1;
+    color: $text-dim;
+    padding: 0 1;
+    background: $bg-panel;
 }
 
 #left-col {
-    width: 52%;
+    width: 57%;
     height: 1fr;
 }
 
 #right-col {
-    width: 48%;
+    width: 43%;
     height: 1fr;
     padding-left: 1;
 }
 
 #node-status {
     height: auto;
-    max-height: 14;
+    max-height: 18;
 }
 
 #bip110 {
     height: 1fr;
+    min-height: 10;
     margin-top: 1;
 }
 
@@ -147,30 +169,38 @@ DashboardScreen #sov-brief {
     display: none;
 }
 
-NodeStatus.alert-peers {
-    border: solid $accent-red;
+/* ─── Base Widget Styles (Rounded, Subtler Borders) ─────────────────── */
+NodeStatus, DatumMining, Bip110Detector, MempoolGlass, LiveCharts, BlockTemplatePanel, SovereignPanel {
+    background: $bg-panel;
+    border: round $border-dim;
+    border-title-color: $accent-gold;
+    border-title-style: bold;
+    padding: 1 2;
+    height: auto;
 }
 
-NodeStatus.alert-mempool {
-    border: solid $accent-yellow;
+/* Interactive Border Glows on Focus & Hover */
+NodeStatus:hover, DatumMining:hover, Bip110Detector:hover, MempoolGlass:hover, LiveCharts:hover, BlockTemplatePanel:hover, SovereignPanel:hover {
+    border: round $accent-orange;
 }
 
-Bip110Detector.alert-spam-block {
-    border: solid $accent-red;
+NodeStatus:focus-within, DatumMining:focus-within, Bip110Detector:focus-within, MempoolGlass:focus-within, LiveCharts:focus-within, BlockTemplatePanel:focus-within, SovereignPanel:focus-within {
+    border: round $accent-cyan;
 }
 
-MempoolGlass.alert-spam {
-    border: solid $accent-red;
-}
+/* ─── Alert border transitions ──────────────────────────────────────── */
+NodeStatus.alert-peers   { border: round $accent-red; }
+NodeStatus.alert-mempool { border: round $accent-yellow; }
 
-MempoolGlass.alert-mempool {
-    border: solid $accent-yellow;
-}
+Bip110Detector.alert-spam-block { border: round $accent-red; }
 
-/* --- Sovereignty status bar --- */
+MempoolGlass.alert-spam    { border: round $accent-red; }
+MempoolGlass.alert-mempool { border: round $accent-yellow; }
+
+/* ─── Sovereignty status bar ────────────────────────────────────────── */
 SovereignStatusBar {
     dock: top;
-    height: 1;
+    height: 2;
     background: rgb(20, 20, 24);
     color: $text-primary;
     padding: 0 1;
@@ -180,25 +210,10 @@ SovereignStatusBar.-alert {
     background: rgb(30, 20, 20);
 }
 
-/* --- Panels --- */
-SovereignPanel {
-    height: auto;
-    background: $bg-panel;
-    border: solid $border-dim;
-    padding: 1 2;
-}
-
-SovereignPanel.-warn {
-    border: solid $accent-yellow;
-}
-
-SovereignPanel.-danger {
-    border: solid $accent-red;
-}
-
-SovereignPanel.-ok {
-    border: solid $accent-green;
-}
+/* ─── Sovereign Panels ──────────────────────────────────────────────── */
+SovereignPanel.-warn   { border: round $accent-yellow; }
+SovereignPanel.-danger { border: round $accent-red; }
+SovereignPanel.-ok     { border: round $accent-green; }
 
 SovereignPanel .sov-panel-title {
     color: $accent-gold;
@@ -206,45 +221,60 @@ SovereignPanel .sov-panel-title {
     padding-bottom: 1;
 }
 
-/* --- Metric cards --- */
+/* ─── Metric cards ──────────────────────────────────────────────────── */
 MetricCard {
     height: auto;
     background: $bg-panel;
-    border: solid $border-dim;
+    border: round $border-dim;
+    border-left: thick $accent-cyan;
     padding: 1 2;
     width: 1fr;
+    margin-right: 1;
 }
 
-MetricCard .metric-label {
-    color: $text-dim;
+MetricCard:hover {
+    border: round $accent-orange;
+    border-left: thick $accent-orange;
+}
+
+MetricCard:focus-within {
+    border: round $accent-cyan;
+    border-left: thick $accent-cyan;
+}
+
+MetricCard .metric-label  { color: $text-dim; text-style: bold; }
+MetricCard .metric-value  { color: $accent-cyan; text-style: bold; }
+MetricCard .metric-digits { color: $accent-cyan; }
+MetricCard .metric-sub    { color: $text-dim; }
+
+MetricCard.-warn {
+    border-left: thick $accent-yellow;
+}
+MetricCard.-warn   .metric-value  { color: $accent-yellow; }
+MetricCard.-warn   .metric-digits { color: $accent-yellow; }
+
+MetricCard.-danger {
+    border-left: thick $accent-red;
+}
+MetricCard.-danger .metric-value  { color: $accent-red; }
+MetricCard.-danger .metric-digits { color: $accent-red; }
+
+MetricCard.-ok {
+    border-left: thick $accent-green;
+}
+MetricCard.-ok     .metric-value  { color: $accent-green; }
+MetricCard.-ok     .metric-digits { color: $accent-green; }
+
+/* Sovereignty Score card hero number */
+#metric-score .metric-digits {
     text-style: bold;
 }
 
-MetricCard .metric-value {
-    color: $accent-cyan;
-    text-style: bold;
-}
-
-MetricCard .metric-sub {
-    color: $text-dim;
-}
-
-MetricCard.-warn .metric-value {
-    color: $accent-yellow;
-}
-
-MetricCard.-danger .metric-value {
-    color: $accent-red;
-}
-
-MetricCard.-ok .metric-value {
-    color: $accent-green;
-}
-
-/* --- Explain box --- */
+/* ─── Explain box ───────────────────────────────────────────────────── */
 ExplainBox {
     height: auto;
     background: rgb(14, 18, 22);
+    border: round $border-dim;
     border-left: thick $accent-cyan;
     padding: 1 2;
     color: $text-dim;
@@ -256,7 +286,7 @@ ExplainBox .explain-title {
     padding-bottom: 1;
 }
 
-/* --- Sidebar navigation --- */
+/* ─── Sidebar navigation ────────────────────────────────────────────── */
 Sidebar {
     width: 26;
     height: 100%;
@@ -272,10 +302,18 @@ Sidebar .sov-nav-brand {
     padding: 0 1 1 1;
 }
 
-Sidebar .sov-nav-tier {
+Sidebar .sov-nav-tier-inline {
+    background: rgb(14, 14, 18);
     color: $accent-cyan;
     text-style: bold;
     padding: 1 1 0 1;
+    height: 2;
+    width: 100%;
+}
+
+Sidebar .sov-nav-item-text {
+    padding: 0 1;
+    height: 1;
 }
 
 Sidebar .sov-nav-hint {
@@ -291,18 +329,31 @@ Sidebar ListView {
 }
 
 Sidebar ListItem {
-    padding: 0 1;
+    padding: 0;
+    border-left: thick transparent;
+    layout: vertical;
+    height: auto;
+}
+
+Sidebar ListItem:hover {
+    background: rgb(24, 24, 28);
+}
+
+Sidebar ListItem:focus {
+    background: rgb(35, 30, 20);
+    color: $accent-gold;
 }
 
 Sidebar ListItem.-active {
-    background: rgb(30, 24, 8);
+    background: rgb(32, 24, 10);
     color: $accent-gold;
     text-style: bold;
+    border-left: thick $accent-orange;
 }
 
-/* --- Control confirm modal --- */
+/* ─── Control confirm modal ─────────────────────────────────────────── */
 ConfirmModal #confirm-dialog {
-    border: solid $accent-red;
+    border: round $accent-red;
     background: $bg-panel;
 }
 
@@ -310,3 +361,389 @@ ConfirmModal .confirm-title {
     color: $accent-red;
     text-style: bold;
 }
+
+/* ─── Node widgets overrides ────────────────────────────────────────── */
+DatumMining .datum-ok   { color: $accent-green; }
+DatumMining .datum-warn { color: $accent-gold; }
+DatumMining .datum-err  { color: $accent-red; }
+DatumMining .datum-metric { color: $text-primary; }
+DatumMining .datum-hint   { color: $text-dim; }
+
+Bip110Detector #tip-panel {
+    height: auto;
+    padding-bottom: 1;
+    border-bottom: solid $border-dim;
+}
+
+Bip110Detector .tip-title { color: $accent-gold; text-style: bold; }
+Bip110Detector .nav-hint  { color: $text-dim; }
+Bip110Detector DataTable  { height: 1fr; }
+
+MempoolGlass .glass-content { color: $text-primary; }
+
+LiveCharts .chart-error { color: $accent-red; }
+
+/* ─── Live indicator ────────────────────────────────────────────────── */
+LiveIndicator {
+    width: auto;
+    height: 1;
+    color: $accent-green;
+    padding: 0 1 0 0;
+}
+LiveIndicator.-stale { color: $text-dim; }
+
+/* ─── Splash screen ─────────────────────────────────────────────────── */
+SplashScreen {
+    align: center middle;
+    background: $bg-deep;
+}
+
+#splash-box {
+    width: 56;
+    height: auto;
+    border: double $accent-orange;
+    background: $bg-panel;
+    padding: 1 2;
+    align: center middle;
+}
+
+#splash-art {
+    color: $accent-orange;
+    text-align: center;
+    text-style: bold;
+}
+
+#splash-title {
+    color: $accent-gold;
+    text-align: center;
+    text-style: bold;
+    padding-top: 1;
+}
+
+#splash-tagline {
+    color: $text-dim;
+    text-align: center;
+}
+
+#splash-hint {
+    color: $text-dim;
+    text-align: center;
+    padding-top: 1;
+}
+
+/* ─── Lite dashboard ────────────────────────────────────────────────── */
+LiteDashboard {
+    layout: vertical;
+    padding: 0 1;
+}
+
+LiteDashboard #lite-header {
+    color: $accent-gold;
+    text-style: bold;
+    text-align: center;
+    padding: 0 1 1 1;
+    height: auto;
+}
+
+LiteDashboard #lite-alert {
+    color: $accent-red;
+    text-align: center;
+    height: auto;
+    min-height: 1;
+    padding: 0 1;
+}
+
+LiteDashboard #lite-metrics {
+    height: auto;
+    padding: 0 0 1 0;
+}
+
+LiteDashboard #lite-status {
+    height: auto;
+    border: round $border-dim;
+    padding: 1 2;
+    margin-bottom: 1;
+}
+
+LiteDashboard #lite-upgrade-hint {
+    color: $text-dim;
+    text-align: center;
+    height: auto;
+    padding: 1;
+}
+
+/* ─── Tooltip overlay ───────────────────────────────────────────────── */
+TooltipOverlay {
+    align: center bottom;
+    height: auto;
+    dock: bottom;
+    width: 1fr;
+}
+
+#tooltip-box {
+    background: rgb(20, 24, 30);
+    border: round $accent-cyan;
+    padding: 0 2;
+    height: auto;
+    color: $accent-cyan;
+    text-align: center;
+}
+
+/* ─── Stream theme overrides (active when Screen has .theme-stream) ── */
+Screen.theme-stream {
+    background: rgb(0, 0, 0);
+}
+
+Screen.theme-stream Header {
+    background: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+    text-style: bold;
+    border-bottom: solid rgb(80, 80, 80);
+}
+
+Screen.theme-stream Footer {
+    background: rgb(10, 10, 10);
+    color: rgb(180, 180, 180);
+    border-top: solid rgb(80, 80, 80);
+}
+
+Screen.theme-stream SovereignStatusBar {
+    background: rgb(10, 10, 10);
+    color: rgb(255, 255, 255);
+}
+
+Screen.theme-stream SovereignPanel {
+    background: rgb(8, 8, 8);
+    border: round rgb(255, 255, 255);
+}
+
+Screen.theme-stream MetricCard {
+    background: rgb(8, 8, 8);
+    border: round rgb(80, 80, 80);
+    border-left: thick rgb(180, 180, 180);
+}
+
+Screen.theme-stream MetricCard .metric-value  { color: rgb(255, 255, 255); text-style: bold; }
+Screen.theme-stream MetricCard .metric-digits { color: rgb(255, 255, 255); text-style: bold; }
+Screen.theme-stream MetricCard.-ok     { border-left: thick rgb(0, 230, 120); }
+Screen.theme-stream MetricCard.-ok     .metric-value  { color: rgb(0, 230, 120); }
+Screen.theme-stream MetricCard.-ok     .metric-digits { color: rgb(0, 230, 120); }
+Screen.theme-stream MetricCard.-warn   { border-left: thick rgb(255, 200, 0); }
+Screen.theme-stream MetricCard.-warn   .metric-value  { color: rgb(255, 200, 0); }
+Screen.theme-stream MetricCard.-warn   .metric-digits { color: rgb(255, 200, 0); }
+Screen.theme-stream MetricCard.-danger { border-left: thick rgb(255, 60, 60); }
+Screen.theme-stream MetricCard.-danger .metric-value  { color: rgb(255, 60, 60); }
+Screen.theme-stream MetricCard.-danger .metric-digits { color: rgb(255, 60, 60); }
+
+Screen.theme-stream NodeStatus  { border: round rgb(200, 200, 200); background: rgb(8, 8, 8); }
+Screen.theme-stream DatumMining { border: round rgb(200, 200, 200); background: rgb(8, 8, 8); }
+Screen.theme-stream Bip110Detector { border: round rgb(200, 200, 200); background: rgb(8, 8, 8); }
+Screen.theme-stream MempoolGlass   { border: round rgb(200, 200, 200); background: rgb(8, 8, 8); }
+Screen.theme-stream LiveCharts     { border: round rgb(200, 200, 200); background: rgb(8, 8, 8); }
+Screen.theme-stream ExplainBox     { background: rgb(8, 8, 8); border: round rgb(80, 80, 80); border-left: thick rgb(180, 180, 180); }
+
+Screen.theme-stream Sidebar        { background: rgb(5, 5, 5); border-right: solid rgb(60, 60, 60); }
+Screen.theme-stream Sidebar .sov-nav-brand { color: rgb(255, 255, 255); }
+Screen.theme-stream Sidebar .sov-nav-tier-inline { background: rgb(5, 5, 5); color: rgb(180, 180, 180); }
+Screen.theme-stream Sidebar ListItem.-active { background: rgb(30, 30, 30); color: rgb(255, 255, 255); border-left: thick rgb(255, 255, 255); }
+
+Screen.theme-stream DataTable > .datatable--header  { background: rgb(20, 20, 20); color: rgb(255, 255, 255); }
+Screen.theme-stream DataTable > .datatable--cursor  { background: rgb(40, 40, 40); color: rgb(255, 255, 255); }
+
+Screen.theme-stream .status-clean      { color: rgb(0, 230, 120); }
+Screen.theme-stream .status-suspicious { color: rgb(255, 200, 0); }
+Screen.theme-stream .status-violation  { color: rgb(255, 60, 60); text-style: bold; }
+
+Screen.theme-stream NodeStatus.alert-peers   { border: round rgb(255, 60, 60); }
+Screen.theme-stream NodeStatus.alert-mempool { border: round rgb(255, 200, 0); }
+Screen.theme-stream Bip110Detector.alert-spam-block { border: round rgb(255, 60, 60); }
+
+/* ─── Policies Screen ───────────────────────────────────────────────── */
+PoliciesScreen #policies-header {
+    color: $accent-orange;
+}
+PoliciesScreen #sim-intro {
+    color: $text-primary;
+}
+PoliciesScreen #sim-table {
+    border: round $border-dim;
+}
+PoliciesScreen #sim-detail {
+    border: round $border-dim;
+    color: $text-dim;
+}
+PoliciesScreen .panel-title {
+    color: $accent-gold;
+}
+
+/* ─── Block Explorer Screen ─────────────────────────────────────────── */
+BlockExplorerScreen #explorer-header {
+    color: $accent-gold;
+}
+BlockExplorerScreen #block-search {
+    border: round $accent-gold;
+}
+BlockExplorerScreen #explorer-status {
+    color: $text-dim;
+}
+BlockExplorerScreen #explorer-summary {
+    border: round $border-dim;
+    color: $text-primary;
+}
+BlockExplorerScreen #explorer-hint {
+    color: $text-dim;
+}
+BlockExplorerScreen #explorer-table {
+    border: round $border-dim;
+}
+BlockExplorerScreen .search-label {
+    color: $accent-gold;
+}
+
+/* ─── Transaction Inspector Screen ──────────────────────────────────── */
+TxInspectorScreen #tx-header {
+    color: $accent-gold;
+}
+TxInspectorScreen #tx-search {
+    border: round $accent-gold;
+}
+TxInspectorScreen #tx-status {
+    color: $text-dim;
+}
+TxInspectorScreen #tx-detail-scroll {
+    border: round $border-dim;
+}
+TxInspectorScreen #tx-detail {
+    color: $text-primary;
+}
+TxInspectorScreen .search-label {
+    color: $accent-gold;
+}
+TxInspectorScreen.violation {
+    border: round $accent-red;
+}
+TxInspectorScreen.spam-signal {
+    border: round $accent-gold;
+}
+TxInspectorScreen.partial {
+    border: round $text-dim;
+}
+TxInspectorScreen.address-mode {
+    border: round $accent-cyan;
+}
+
+/* ─── Spam & Health Screen ──────────────────────────────────────────── */
+SpamHealthScreen #health-header {
+    color: $accent-gold;
+}
+SpamHealthScreen #health-summary {
+    border: round $accent-gold;
+    color: $text-primary;
+}
+SpamHealthScreen #health-chart-panel {
+    border: round $border-dim;
+}
+SpamHealthScreen #health-worst-panel {
+    border: round $accent-gold;
+}
+SpamHealthScreen .panel-title {
+    color: $accent-gold;
+}
+SpamHealthScreen #health-hint {
+    color: $text-dim;
+}
+SpamHealthScreen.health-poor #health-summary {
+    border: round $accent-red;
+}
+SpamHealthScreen.health-degraded #health-summary {
+    border: round $accent-gold;
+}
+
+/* ─── Mining Screen ─────────────────────────────────────────────────── */
+MiningScreen .mining-title {
+    color: $accent-gold;
+}
+
+/* ─── Node Control Screen ───────────────────────────────────────────── */
+NodeControlScreen #control-header {
+    color: $accent-gold;
+}
+NodeControlScreen #control-hint {
+    color: $text-dim;
+}
+NodeControlScreen #peers-panel {
+    border: round $accent-gold;
+}
+NodeControlScreen #bans-panel {
+    border: round $border-dim;
+}
+NodeControlScreen .panel-title {
+    color: $accent-gold;
+}
+NodeControlScreen #mempool-row {
+    border-top: solid $border-dim;
+}
+NodeControlScreen #mempool-limit-input {
+    border: round $accent-gold;
+}
+NodeControlScreen .field-label {
+    color: $text-primary;
+}
+
+/* ─── Block Template Panel ──────────────────────────────────────────── */
+BlockTemplatePanel .template-content {
+    color: $text-primary;
+}
+BlockTemplatePanel .template-hint {
+    color: $text-dim;
+}
+
+/* ─── Block Detail Modal ────────────────────────────────────────────── */
+BlockDetailModal #block-dialog {
+    background: $bg-panel;
+    border: round $accent-orange;
+}
+BlockDetailModal #block-meta {
+    color: $text-primary;
+}
+BlockDetailModal #block-tx-header {
+    color: $accent-gold;
+}
+BlockDetailModal #block-tx-table {
+    border: round $border-dim;
+}
+BlockDetailModal #block-hint {
+    color: $text-dim;
+}
+BlockDetailModal #action-status {
+    color: $accent-green;
+}
+BlockDetailModal .detail-title {
+    color: $accent-gold;
+}
+
+/* ─── Help Screen Modal ──────────────────────────────────────────────── */
+HelpScreen #help-dialog {
+    background: $bg-panel;
+    border: round $accent-gold;
+}
+
+/* ─── Ocean Address Screen Modal ─────────────────────────────────────── */
+OceanAddressScreen #ocean-dialog {
+    background: $bg-panel;
+    border: round $accent-cyan;
+}
+OceanAddressScreen #ocean-title {
+    color: $accent-cyan;
+}
+OceanAddressScreen #ocean-hint {
+    color: $text-dim;
+}
+OceanAddressScreen #ocean-error {
+    color: $accent-red;
+}
+OceanAddressScreen #ocean-status {
+    color: $accent-green;
+}
+
+

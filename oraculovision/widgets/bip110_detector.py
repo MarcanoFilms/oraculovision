@@ -21,6 +21,12 @@ _STATUS_STYLE = {
     "VIOLATION": "red bold",
 }
 
+_STATUS_ICON = {
+    "CLEAN": "✓",
+    "SUSPICIOUS": "⚠",
+    "VIOLATION": "🔴",
+}
+
 RECENT_BLOCKS = 15
 
 
@@ -34,21 +40,14 @@ class Bip110Detector(Static):
     DEFAULT_CSS = """
     Bip110Detector {
         height: 1fr;
-        border: solid #ffd700;
         padding: 1 1;
-    }
-    Bip110Detector:focus-within {
-        border: solid #ffd700;
     }
     Bip110Detector #tip-panel {
         height: auto;
         padding-bottom: 1;
-        border-bottom: solid #333;
     }
-    Bip110Detector .tip-title { color: #ffd700; text-style: bold; }
-    Bip110Detector .nav-hint { color: #666; }
+    Bip110Detector .tip-title { text-style: bold; }
     Bip110Detector DataTable { height: 1fr; }
-    Bip110Detector.alert-spam-block { border: solid #ff6b6b; }
     """
 
     def __init__(
@@ -62,7 +61,7 @@ class Bip110Detector(Static):
         self.cli = cli or BitcoinCLI()
         self.config = config or AppConfig()
         self.block_service = block_service
-        self.border_title = "BIP-110 DETECTOR"
+        self.border_title = "🔍 BIP-110 DETECTOR"
         self._cache: dict[str, BlockAnalysis] = {}
         self._blocks: list[BlockAnalysis] = []
         self._blocks_by_height: dict[str, BlockAnalysis] = {}
@@ -73,7 +72,7 @@ class Bip110Detector(Static):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Label("Analyzing chain...", id="tip-panel", classes="tip-title")
-            yield Label("↑↓ navigate  ·  Enter detail", classes="nav-hint")
+            yield Label("🧭 ↑↓ navigate  ·  ⏎ Enter detail", classes="nav-hint")
             yield DataTable(id="blocks-table", zebra_stripes=True, cursor_type="row")
 
     def on_mount(self) -> None:
@@ -163,19 +162,25 @@ class Bip110Detector(Static):
             f"viol_wt:{t.violation_weight:,}"
         )
         miner = safe_markup_text(t.miner_tag)
+        spam_emoji = "🟢" if t.spam_score < 45 else ("🟡" if t.spam_score < 70 else "🔴")
+        signal_emoji = "📡" if t.bip110_signaling else "🔕"
         tip_label.update(
-            f"TIP #{t.height}  {t.hash[:16]}…  "
-            f"Miner: {miner}  "
-            f"BIP110 bit4: {signal}  "
-            f"Spam: {t.spam_score}/100 [{t.status}]  "
-            f"{breakdown}"
+            f"📊 TIP [bold]#{t.height}[/]  [dim]{t.hash[:16]}…[/]  "
+            f"⛏ {miner}  "
+            f"{signal_emoji} bit4:{signal}  "
+            f"{spam_emoji} Spam {t.spam_score}/100 [{t.status}]  "
+            f"[dim]{breakdown}[/]"
         )
 
         threshold = self.config.alerts.spam_block_score
+        prev = self.alert_spam_block
         self.alert_spam_block = t.spam_score >= threshold or t.status == "VIOLATION"
         self.remove_class("alert-spam-block")
         if self.alert_spam_block:
             self.add_class("alert-spam-block")
+        if self.alert_spam_block and not prev:
+            self.styles.animate("opacity", 0.5, duration=0.15)
+            self.set_timer(0.15, lambda: self.styles.animate("opacity", 1.0, duration=0.3))
 
         for block in self._blocks:
             self._blocks_by_height[str(block.height)] = block
@@ -183,7 +188,9 @@ class Bip110Detector(Static):
             if block.spam_score > 60:
                 miner = f"⚠ {miner}"
             style = _STATUS_STYLE.get(block.status, "")
-            status_cell = f"[{style}]{block.status}[/]" if style else block.status
+            icon = _STATUS_ICON.get(block.status, "")
+            label = f"{icon} {block.status}".strip()
+            status_cell = f"[{style}]{label}[/]" if style else label
             spam_cell = (
                 f"[{style}]{block.spam_score}[/]"
                 if block.spam_score >= 45

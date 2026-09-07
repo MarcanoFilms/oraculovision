@@ -55,30 +55,22 @@ class MempoolGlassScreen(BaseScreen):
     DEFAULT_CSS = """
     MempoolGlassScreen #glass-summary {
         height: auto;
-        border: solid #ffd700;
         padding: 1 2;
         margin-bottom: 1;
     }
     MempoolGlassScreen #glass-table {
         height: 1fr;
-        border: solid #333;
     }
     MempoolGlassScreen .glass-title {
-        color: #ffd700;
         text-style: bold;
     }
     MempoolGlassScreen #glass-hint {
         height: auto;
-        color: #666;
         padding: 0 1;
     }
     MempoolGlassScreen #glass-status {
         height: auto;
         padding: 0 1;
-        color: #3dd68c;
-    }
-    MempoolGlassScreen.alert-spam {
-        border: solid #ff6b6b;
     }
     """
 

@@ -37,6 +37,10 @@ config.toml
 *.swo
 *~
 
+# AI coding agents
+.claude/
+.aider*
+
 # OS
 .DS_Store
 Thumbs.db

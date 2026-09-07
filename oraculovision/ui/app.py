@@ -1,4 +1,4 @@
-"""OracleVision v2 — multi-screen sovereign dashboard."""
+"""OraculoVision v2.3 — multi-screen sovereign dashboard."""
 
 from __future__ import annotations
 
@@ -20,26 +20,33 @@ from oraculovision.widgets.node_status import NodeStatus
 from oraculovision.screens.help_screen import HelpScreen
 from oraculovision.screens.ocean_address_screen import OceanAddressScreen
 from oraculovision.analysis.bip110 import BlockAnalysis, TxAnalysis
-from oraculovision.analysis.detectors import configure_detectors
 from oraculovision.analysis.chain_health import ChainHealthReport
+from oraculovision.analysis.detectors import configure_detectors
 from oraculovision.services.block_service import BlockService
 from oraculovision.services.export_service import ExportService, default_export_dir
 from oraculovision.services.health_service import HealthService
+from oraculovision.services.milestone_tracker import MilestoneTracker
 from oraculovision.services.template_service import TemplateService
 from oraculovision.services.address_service import AddressInspection, AddressService
 from oraculovision.services.tx_service import TxInspectContext, TxInspection, TxService
+from oraculovision.ui.commands import OracleCommandProvider
+from oraculovision.ui.navigation import lite_screens
 from oraculovision.ui.screens.block_explorer import BlockExplorerScreen
 from oraculovision.ui.screens.dashboard import DashboardScreen
+from oraculovision.ui.screens.lite_dashboard import LiteDashboard
 from oraculovision.ui.screens.mempool_glass import MempoolGlassScreen
 from oraculovision.ui.screens.mining import MiningScreen
 from oraculovision.ui.screens.node_control import NodeControlScreen
 from oraculovision.ui.screens.policies import PoliciesScreen
 from oraculovision.ui.screens.spam_health import SpamHealthScreen
+from oraculovision.ui.screens.splash import SplashScreen
 from oraculovision.ui.screens.tx_inspector import TxInspectorScreen
 from oraculovision.ui.components.sovereign_status_bar import SovereignStatusBar
 from oraculovision.ui.widgets.sidebar import Sidebar
 
 _THEME_DIR = Path(__file__).resolve().parent / "theme"
+
+_LITE_SCREEN_IDS = {s.id for s in lite_screens()}
 
 
 class SovereignApp(App):
@@ -49,6 +56,8 @@ class SovereignApp(App):
     SUB_TITLE = "Don't Trust, Verify"
 
     CSS_PATH = _THEME_DIR / "sovereign.tcss"
+
+    COMMANDS = {OracleCommandProvider}
 
     BINDINGS = [
         Binding("r", "refresh", "Refresh", show=True),
@@ -72,6 +81,7 @@ class SovereignApp(App):
         Binding("7", "goto_mining", "Mine", show=False),
         Binding("e", "export_data", "Export", show=True),
         Binding("p", "switch_profile", "Profile", show=True),
+        Binding("ctrl+t", "cycle_theme", "Theme", show=False),
     ]
 
     def __init__(self, config: AppConfig | None = None) -> None:
@@ -82,8 +92,13 @@ class SovereignApp(App):
         self.cli = self._build_node_client()
         self._init_services()
         self.export_service = self._build_export_service()
+        self._milestone_tracker = MilestoneTracker()
         self._active_screen = "dashboard"
         self._config_path, self._config_mtime = config_source()
+        self._lite_mode: bool = self.config.ui.mode == "lite"
+        self._stream_theme: bool = self.config.ui.theme == "stream"
+
+    # ─── Compose ──────────────────────────────────────────────────────
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -95,7 +110,11 @@ class SovereignApp(App):
         )
         with Container(id="sovereign-shell"):
             with Horizontal(id="sovereign-layout"):
-                yield Sidebar(id="sidebar", active_id=self._active_screen)
+                yield Sidebar(
+                    id="sidebar",
+                    active_id=self._active_screen,
+                    lite_mode=self._lite_mode,
+                )
                 with ContentSwitcher(
                     initial=self._active_screen,
                     id="screen-switcher",
@@ -141,7 +160,14 @@ class SovereignApp(App):
                         self.config,
                         id="node_control",
                     )
+                    yield LiteDashboard(
+                        self.cli,
+                        self.config,
+                        id="lite_dashboard",
+                    )
         yield Footer()
+
+    # ─── Lifecycle ────────────────────────────────────────────────────
 
     def on_mount(self) -> None:
         interval = self.config.refresh.interval_seconds
@@ -149,22 +175,38 @@ class SovereignApp(App):
         self._refresh_status_bar()
         self.action_refresh()
 
-    def _refresh_status_bar(self) -> None:
-        try:
-            self.query_one("#sovereign-status", SovereignStatusBar).refresh_data()
-        except Exception:
-            pass
+        if self._stream_theme:
+            self.screen.add_class("theme-stream")
+
+        if self._lite_mode:
+            self._switch_screen("lite_dashboard")
+
+        if self.config.ui.splash:
+            self.push_screen(SplashScreen())
+
+    # ─── Screen switching ─────────────────────────────────────────────
 
     def on_sidebar_screen_selected(self, event: Sidebar.ScreenSelected) -> None:
         self._switch_screen(event.screen_id)
 
     def _switch_screen(self, screen_id: str) -> None:
+        if self._lite_mode and screen_id not in _LITE_SCREEN_IDS and screen_id != "lite_dashboard":
+            self.notify(
+                "Switch to Pro mode (Ctrl+P → Toggle mode) to access this screen",
+                title="Lite Mode",
+                severity="warning",
+                timeout=4,
+            )
+            return
+
         self._active_screen = screen_id
         switcher = self.query_one("#screen-switcher", ContentSwitcher)
         switcher.current = screen_id
         self.query_one("#sidebar", Sidebar).set_active(screen_id)
         screen = self._current_screen()
         if screen:
+            if self.config.ui.screen_transitions:
+                screen.styles.animate("opacity", 1.0, duration=0.25)
             screen.refresh_screen()
 
     def _current_screen(self):
@@ -174,8 +216,10 @@ class SovereignApp(App):
         except Exception:
             return None
 
+    # ─── Navigation actions ───────────────────────────────────────────
+
     def action_goto_dashboard(self) -> None:
-        self._switch_screen("dashboard")
+        self._switch_screen("lite_dashboard" if self._lite_mode else "dashboard")
 
     def action_goto_policies(self) -> None:
         self._switch_screen("policies")
@@ -209,7 +253,6 @@ class SovereignApp(App):
         raw_tx: dict | None = None,
         cached_analysis: TxAnalysis | None = None,
     ) -> None:
-        """Switch to Tx Inspector and analyze the given txid."""
         context = TxInspectContext(
             block_hash=block_hash,
             block_height=block_height,
@@ -251,12 +294,89 @@ class SovereignApp(App):
     def action_goto_mining(self) -> None:
         self._switch_screen("mining")
 
+    # ─── Refresh ──────────────────────────────────────────────────────
+
     def action_refresh(self) -> None:
         self._maybe_reload_config()
         self._refresh_status_bar()
         screen = self._current_screen()
         if screen:
             screen.refresh_screen()
+
+    def _refresh_status_bar(self) -> None:
+        try:
+            self.query_one("#sovereign-status", SovereignStatusBar).refresh_data()
+        except Exception:
+            pass
+
+    # ─── Theme ────────────────────────────────────────────────────────
+
+    def action_cycle_theme(self) -> None:
+        """Toggle between oracle (default) and stream (recording) theme."""
+        self._stream_theme = not self._stream_theme
+        if self._stream_theme:
+            self.screen.add_class("theme-stream")
+            self.config.ui.theme = "stream"
+            self.notify("Theme: Stream (recording)", title="Theme", timeout=3)
+        else:
+            self.screen.remove_class("theme-stream")
+            self.config.ui.theme = "oracle"
+            self.notify("Theme: Oracle (default)", title="Theme", timeout=3)
+
+    # ─── Lite / Pro mode ──────────────────────────────────────────────
+
+    def action_toggle_ui_mode(self) -> None:
+        """Toggle Lite ↔ Pro mode at runtime."""
+        self._lite_mode = not self._lite_mode
+        self.config.ui.mode = "lite" if self._lite_mode else "pro"
+
+        # Rebuild sidebar to reflect available screens
+        try:
+            old_sidebar = self.query_one("#sidebar", Sidebar)
+            new_sidebar = Sidebar(
+                id="sidebar",
+                active_id=self._active_screen,
+                lite_mode=self._lite_mode,
+            )
+            old_sidebar.remove()
+            layout = self.query_one("#sovereign-layout", Horizontal)
+            layout.mount(new_sidebar, before=self.query_one("#screen-switcher"))
+        except Exception:
+            pass
+
+        if self._lite_mode:
+            self._switch_screen("lite_dashboard")
+            self.notify(
+                "Lite mode — single overview screen. Ctrl+P → Toggle mode for Pro.",
+                title="Mode",
+                timeout=5,
+            )
+        else:
+            self._switch_screen("dashboard")
+            self.notify("Pro mode — all 8 screens enabled.", title="Mode", timeout=4)
+
+    # ─── Milestone celebrations ────────────────────────────────────────
+
+    def check_height_milestone(self, height: int) -> None:
+        event_id = self._milestone_tracker.round_height_event(height)
+        if event_id and self._milestone_tracker.should_celebrate(event_id):
+            self.notify(
+                f"Block #{height:,} — round-number milestone! 🎯",
+                title="OraculoVision",
+                timeout=6,
+            )
+
+    def check_block_found(self, worker_name: str, height: int) -> None:
+        event_id = f"block_found:{height}"
+        if self._milestone_tracker.should_celebrate(event_id):
+            self.notify(
+                f"Block found at #{height:,}! Worker: {worker_name}",
+                title="Block Found! ⛏",
+                severity="information",
+                timeout=10,
+            )
+
+    # ─── Profile switching ────────────────────────────────────────────
 
     def _build_node_client(self) -> NodeClient:
         profile = self.config.profiles[self.config.bitcoin.active_profile]
@@ -307,10 +427,7 @@ class SovereignApp(App):
             pass
         try:
             from oraculovision.widgets.block_template import BlockTemplatePanel
-
-            dashboard.query_one(BlockTemplatePanel).template_service = (
-                self.template_service
-            )
+            dashboard.query_one(BlockTemplatePanel).template_service = self.template_service
         except Exception:
             pass
 
@@ -336,6 +453,9 @@ class SovereignApp(App):
         control.client = self.cli
         control.gate = self.control_gate
 
+        lite = self.query_one("#lite_dashboard", LiteDashboard)
+        lite.cli = self.cli
+
     def action_switch_profile(self) -> None:
         if len(self._profile_names) < 2:
             self.notify(
@@ -354,15 +474,13 @@ class SovereignApp(App):
         self.cli = self._build_node_client()
         self._init_services()
         self._rebind_node_clients()
-        self.notify(
-            f"Active profile: {next_name}",
-            title="Node profile",
-            timeout=4,
-        )
+        self.notify(f"Active profile: {next_name}", title="Node profile", timeout=4)
         self._refresh_status_bar()
         screen = self._current_screen()
         if screen:
             screen.refresh_screen(force=True)
+
+    # ─── Export ───────────────────────────────────────────────────────
 
     def _build_export_service(self) -> ExportService:
         export_cfg = self.config.export
@@ -386,11 +504,7 @@ class SovereignApp(App):
         self._init_services()
         self._rebind_node_clients()
         self.export_service = self._build_export_service()
-        self.notify(
-            f"Config reloaded from {path.name}",
-            title="OracleVision",
-            timeout=4,
-        )
+        self.notify(f"Config reloaded from {path.name}", title="OraculoVision", timeout=4)
 
     def action_export_data(self) -> None:
         screen = self._current_screen()
@@ -406,9 +520,6 @@ class SovereignApp(App):
         context = screen.export_context() if hasattr(screen, "export_context") else None
         try:
             paths = self._export_context(context)
-        except ValueError as exc:
-            self.notify(str(exc), title="Export failed", severity="error", timeout=5)
-            return
         except Exception as exc:
             self.notify(str(exc), title="Export failed", severity="error", timeout=5)
             return
@@ -422,9 +533,8 @@ class SovereignApp(App):
             )
             return
 
-        primary = paths[0]
         self.notify(
-            f"Wrote {len(paths)} file(s) — {primary.name}",
+            f"Wrote {len(paths)} file(s) — {paths[0].name}",
             title="Export",
             timeout=5,
         )
@@ -449,8 +559,11 @@ class SovereignApp(App):
             self.query_one("#dashboard", DashboardScreen).refresh_template()
 
     def action_refresh_utxo(self) -> None:
-        dash = self.query_one("#dashboard", DashboardScreen)
-        dash.refresh_utxo()
+        if self._active_screen in ("dashboard", "lite_dashboard"):
+            try:
+                self.query_one("#dashboard", DashboardScreen).refresh_utxo()
+            except Exception:
+                pass
 
     def action_show_help(self) -> None:
         self.push_screen(HelpScreen())
@@ -472,14 +585,15 @@ class SovereignApp(App):
             from oraculovision.widgets.datum_mining import DatumMining
             current = mining.query_one("#datum-full", DatumMining).active_ocean_address
 
-        self.push_screen(
-            OceanAddressScreen(current),
-            self._on_ocean_address_set,
-        )
+        self.push_screen(OceanAddressScreen(current), self._on_ocean_address_set)
 
     def _on_ocean_address_set(self, address: str | None) -> None:
         if address is None:
             return
+        # Persist so the address survives restarts (user can change anytime).
+        from oraculovision.state import save_ocean_address
+        save_ocean_address(address)
+        self.config.ocean.address = address.strip()
         mining = self.query_one("#mining", MiningScreen)
         mining.set_ocean_address(address)
         try:

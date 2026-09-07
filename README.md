@@ -5,18 +5,34 @@ Terminal dashboard (TUI) for sovereign operators running **Bitcoin Knots** with 
 
 Philosophy: **Don't Trust, Verify**.
 
+**v2.4** — DeepSea-inspired mining suite: net-earnings economics (electricity + pool fee, optional fiat profit/day), worker online/offline toast alerts, a payout-progress bar, per-worker ASIC detection, and a higher-definition (sextant, btop-grade) block-template treemap.
+
+**v2.3** — adds Sparkline trend charts, Sovereignty Score, animated alerts, Lite/Pro mode, stream recording theme, Command Palette, splash screen, and archival node awareness.
+
 ## Features
 
-| Panel | Description |
-|-------|-------------|
-| **Node Status** | Sync, peers, mempool, UTXO set (manual refresh), alerts |
-| **BIP-110 Detector** | Spam score, status, miner tags, navigable table |
+| Panel / Feature | Description |
+|----------------|-------------|
+| **Node Status** | Sync, peers, mempool, UTXO set — with rolling **Sparkline** trend charts for peers and mempool |
+| **Mining Economics** | Net sat/day after pool fee + electricity, with optional fiat profit/day (`[mining]` config) |
+| **Worker Alerts** | Toast notifications when an Ocean worker stops hashing or comes back online |
+| **Payout Progress** | Visual bar tracking your unpaid balance toward the Ocean payout threshold |
+| **Worker ASIC Detection** | Per-worker table inferring the rig model (S19/S21/Whatsminer…) from worker names |
+| **Block Template Treemap** | mempool.space-style fee-rate treemap with btop-grade sextant rendering |
+| **Sovereignty Score** | Composite 0-100 headline metric (sync + peers + Knots + spam) with letter grade (A+…F) |
+| **BIP-110 Detector** | Spam score, status, miner tags, navigable table — animated red flash on new violation |
 | **Block Detail Modal** | Full per-block detail (Enter) |
 | **DATUM Mining** | Gateway, workers, hashrate, shares |
 | **Ocean Account** | Pool hashrate, TIDES, earnings, blocks found |
 | **Mempool Glass** | **Real Block Template** composition (all GBT txs) |
 | **Block Template** | Compact GBT summary + top 5 fee rates |
-| **Live Metrics** | Mempool and peer charts |
+| **Live Metrics** | Mempool and peer charts (textual-plotext) |
+| **Lite Mode** | Single-screen overview for first-time node operators |
+| **Command Palette** | `Ctrl+P` fuzzy-search access to all actions |
+| **Stream Theme** | High-contrast recording theme (`Ctrl+T`) optimised for 1080p |
+| **Splash Screen** | ASCII-art oracle splash on startup (auto-dismisses, configurable) |
+| **[PRUNED] / [ARCHIVAL]** | Status bar badge detects node type via `getblockchaininfo` + `getindexinfo` |
+| **Milestone Celebrations** | `notify()` toast on round-number block heights (debounced, no repeat) |
 
 ## Requirements
 
@@ -91,6 +107,17 @@ This creates `~/.local/bin/oraculovision` pointing at the project's virtual envi
 | `/` | Focus search (Explorer, Tx Inspector, Control) |
 | `q` | Quit |
 | `?` | Full help screen |
+| `Ctrl+P` | Command Palette — fuzzy-search all actions |
+| `Ctrl+T` | Cycle theme: Oracle ↔ Stream (recording) |
+
+### Command Palette (`Ctrl+P`)
+
+Type any part of an action name to jump to it:
+
+- Switch to any screen by name
+- **Toggle Lite / Pro mode** — switch between single-screen and full 8-screen UI
+- **Toggle stream theme** — high-contrast 1080p recording mode
+- Switch node profile, change Ocean address, export, refresh template, UTXO
 
 ### Tx & Address Inspector
 
@@ -137,6 +164,48 @@ On **pruned nodes**, inspect txs from Block Explorer (`i` on flagged tx) for ful
 - **Red border** on Mempool Glass — >30% spam weight
 - **Top banner** — summary of active alerts
 
+## Lite vs Pro mode
+
+| Mode | What you see |
+|------|-------------|
+| **Pro** (default) | All 8 screens, full expert panels, BIP-110 table |
+| **Lite** | Single dashboard: Score, Sync, Peers, Mempool + DATUM |
+
+Switch at runtime via `Ctrl+P → Toggle Lite / Pro mode`, or set in config:
+
+```toml
+[ui]
+mode = "lite"   # or "pro" (default)
+```
+
+Lite mode is ideal for a first-time node runner or a wall-mounted display.
+
+## Themes
+
+| Theme | Description |
+|-------|-------------|
+| `oracle` | Default cyberpunk dark palette (orange + cyan + gold) |
+| `stream` | High-contrast black/white optimised for 1080p screen recording |
+
+Toggle with `Ctrl+T` at runtime or `[ui] theme = "stream"` in config.
+
+## Sovereignty Score
+
+The **Score** metric card on the dashboard is a 0–100 composite:
+
+| Penalty | Condition |
+|---------|-----------|
+| Up to 25 pts | Not fully synced |
+| Up to 20 pts | Peer count below `min_peers` |
+| 10 pts | Not running Bitcoin Knots |
+| 5–20 pts | Template spam weight (5 / 10 / 20 pts at >5% / >15% / >30%) |
+| 8–15 pts | Tip block spam score (8 pts >40, 15 pts >60) |
+| 5–10 pts | Chain health violation % (5 pts >10%, 10 pts >20%) |
+
+Grades: **A+** (96–100) · **A** (90–95) · **B** (80–89) · **C** (70–79) · **D** (60–69) · **F** (<60)
+
+The formula is isolated in `oraculovision/analysis/sovereignty_score.py` and fully unit-tested.
+
 ## Configuration
 
 OraculoVision looks for configuration in this order:
@@ -145,7 +214,21 @@ OraculoVision looks for configuration in this order:
 2. `~/.config/oraculovision/config.toml`
 3. `config.toml` in the project root
 
-See `config.example.toml` for all available options.
+See `config.example.toml` for all available options with documentation.
+
+### UI configuration (`[ui]`)
+
+```toml
+[ui]
+mode                = "pro"     # "lite" | "pro"
+theme               = "oracle"  # "oracle" | "stream" | "dark"
+screen_transitions  = true      # opacity fade when switching screens
+splash              = true      # ASCII-art splash on launch
+tooltips            = true      # first-open panel tips (stored in ~/.local/share/…)
+sparkline_samples   = 60        # rolling buffer (~30 min at 30 s interval)
+```
+
+All keys are optional — existing `config.toml` files work without changes.
 
 ### Environment variables
 

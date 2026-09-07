@@ -64,6 +64,25 @@ datadir = ""
 # Optional: press [o] in the dashboard to enter or change the address
 # for the current session (session override takes priority over this value).
 address = ""
+# Payout threshold in BTC, used for the "Progress" bar in the earnings panel.
+# Ocean reports this per-account; this is only the fallback when it doesn't.
+payout_threshold = 0.001
+
+[mining]
+# Local mining economics — all optional. Left at the defaults below, the
+# dashboard shows gross earnings only and nothing changes. Fill these in to
+# see pool-fee-adjusted and electricity-adjusted net earnings.
+# Total rig power draw in watts (e.g. a single Bitaxe ~15, an S19 ~3250).
+power_watts = 0.0
+# Electricity price per kWh, in the currency below.
+power_cost_per_kwh = 0.0
+# Currency label for power cost / profit figures.
+currency = "USD"
+# Pool fee percentage (Ocean is 0% on TIDES; some setups differ).
+pool_fee_pct = 0.0
+# BTC spot price in `currency`. Set this to also see power cost in sats and
+# a net profit/day figure; leave 0 to show gross-minus-fee sats only.
+btc_price = 0.0
 
 [control]
 # Read-only mode (default: true). When true, all node control/write RPCs
@@ -97,3 +116,36 @@ enabled = ["builtin"]
 scantxoutset_timeout = 90.0
 max_vin_lookups = 4
 mempool_scan_limit = 30
+
+[ui]
+# UI/UX presentation settings. All keys have safe defaults; existing
+# config.toml files work unmodified even without this section.
+
+# Dashboard mode: "pro" (all 8 screens, default) or "lite" (single-screen
+# overview aimed at first-time node runners). Togglable at runtime via
+# Ctrl+P → "Toggle Lite/Pro mode" or the sidebar menu.
+mode = "pro"
+
+# Color theme: "oracle" (default cyberpunk palette), "stream" (high-contrast
+# for screen recording / YouTube at 1080p), or "dark" (Textual system dark).
+theme = "oracle"
+
+# Animate panel opacity briefly when switching between the 8 screens.
+# Disable for Pi-class hardware or remote SSH sessions.
+screen_transitions = true
+
+# Show ASCII-art splash screen on launch (auto-dismisses after 2 s or keypress).
+splash = true
+
+# Show first-open contextual tooltips per panel (dismissed permanently after
+# first view; stored in ~/.local/share/oraculovision/tooltips.json).
+tooltips = true
+
+# Rolling buffer size for Sparkline charts (peer count, mempool MB).
+# Each sample ≈ refresh_interval_seconds apart.  60 ≈ 30 minutes at 30 s.
+sparkline_samples = 60
+[pyblock]
+# Show community blocks found by the PyBLOCK DATUM pool (third-party data).
+# Your own node metrics always remain the sovereign source of truth.
+community_blocks = true
+api_url = "https://pyblock.xyz:8443"

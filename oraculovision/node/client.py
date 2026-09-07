@@ -229,6 +229,18 @@ class NodeClient:
         finally:
             self.timeout = old_timeout
 
+    def get_index_info(self) -> dict[str, Any]:
+        """Return index status (txindex, blockfilterindex, etc.).
+
+        Available since Bitcoin Core 0.21 / Knots 21+.
+        Returns an empty dict on older nodes or pruned nodes without txindex.
+        """
+        try:
+            result = self.call("getindexinfo")
+            return result if isinstance(result, dict) else {}
+        except BitcoinCLIError:
+            return {}
+
     def get_block_template(self) -> dict[str, Any]:
         return self.call("getblocktemplate", {"rules": ["segwit"]})
 
@@ -268,6 +280,11 @@ class NodeClient:
             return result if isinstance(result, dict) else {}
         finally:
             self.timeout = old_timeout
+
+    def get_net_totals(self) -> dict[str, Any]:
+        """Return cumulative network traffic stats (totalbytessent, totalbytesrecv)."""
+        result = self.call("getnettotals")
+        return result if isinstance(result, dict) else {}
 
     def is_available(self) -> tuple[bool, str | None]:
         try:

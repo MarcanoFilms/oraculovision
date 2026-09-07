@@ -1,14 +1,14 @@
-"""Compact metric display card."""
+"""Compact metric display card — with optional Digits hero number."""
 
 from __future__ import annotations
 
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Label, Static
+from textual.widgets import Digits, Label, Static
 
 
 class MetricCard(Static):
-    """Single metric: label, value, optional subtitle."""
+    """Single metric: label, value (normal or Digits hero), optional subtitle."""
 
     def __init__(
         self,
@@ -17,6 +17,7 @@ class MetricCard(Static):
         subtitle: str = "",
         *,
         severity: str = "",
+        use_digits: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -24,11 +25,15 @@ class MetricCard(Static):
         self._value = value
         self._subtitle = subtitle
         self._severity = severity
+        self._use_digits = use_digits
 
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Label(self._label, classes="metric-label")
-            yield Label(self._value, classes="metric-value", id="metric-value")
+            if self._use_digits:
+                yield Digits(self._value, id="metric-value", classes="metric-digits")
+            else:
+                yield Label(self._value, classes="metric-value", id="metric-value")
             yield Static(self._subtitle, classes="metric-sub", id="metric-sub")
 
     def on_mount(self) -> None:
@@ -41,7 +46,13 @@ class MetricCard(Static):
         subtitle: str | None = None,
         severity: str | None = None,
     ) -> None:
-        self.query_one("#metric-value", Label).update(value)
+        if self._use_digits:
+            try:
+                self.query_one("#metric-value", Digits).update(value)
+            except Exception:
+                pass
+        else:
+            self.query_one("#metric-value", Label).update(value)
         if subtitle is not None:
             sub = self.query_one("#metric-sub", Static)
             sub.update(subtitle)

@@ -33,6 +33,8 @@ class SovereigntySnapshot:
     mempool_mb: float = 0.0
     pruned: bool = False
     prune_height: int = 0
+    tx_index: bool = False
+    network_hashrate_ehs: float = 0.0
     error: str | None = None
 
     @property
@@ -72,6 +74,19 @@ def fetch_sovereignty_snapshot(
     snap.mempool_mb = float(mempool.get("bytes", 0)) / 1_000_000
     snap.pruned = bool(chain.get("pruned"))
     snap.prune_height = int(chain.get("pruneheight", 0) or 0)
+
+    try:
+        index_info = client.get_index_info()
+        snap.tx_index = bool(index_info.get("txindex", {}).get("synced", False))
+    except Exception:
+        snap.tx_index = False
+
+    try:
+        mining = client.call("getmininginfo")
+        snap.network_hashrate_ehs = float(mining.get("networkhashps", 0.0)) / 1e18
+    except Exception:
+        snap.network_hashrate_ehs = 0.0
+
     return snap
 
 

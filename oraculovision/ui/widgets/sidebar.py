@@ -1,4 +1,4 @@
-"""Navigation sidebar with tier grouping."""
+"""Navigation sidebar with tier grouping and Lite/Pro mode support."""
 
 from __future__ import annotations
 
@@ -14,34 +14,46 @@ class Sidebar(Static):
     """Keyboard-navigable screen selector with OVERVIEW / ANALYZE / OPERATE tiers."""
 
     class ScreenSelected(Message):
-        """Posted when user selects a screen."""
-
         def __init__(self, screen_id: str) -> None:
             self.screen_id = screen_id
             super().__init__()
 
-    def __init__(self, active_id: str = "dashboard", **kwargs) -> None:
+    def __init__(
+        self,
+        active_id: str = "dashboard",
+        *,
+        lite_mode: bool = False,
+        **kwargs,
+    ) -> None:
         super().__init__(**kwargs)
         self._active_id = active_id
+        self._lite_mode = lite_mode
         self._specs_by_id: dict[str, object] = {}
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            yield Static("ORACULOVISION", classes="sov-nav-brand")
+            brand = "ORACULOVISION" + (" · LITE" if self._lite_mode else "")
+            yield Static(brand, classes="sov-nav-brand")
             items: list[ListItem] = []
-            for tier, specs in screens_by_tier():
-                yield Static(TIER_LABELS.get(tier, tier.upper()), classes="sov-nav-tier")
-                for spec in specs:
+            for tier, specs in screens_by_tier(lite_mode=self._lite_mode):
+                for i, spec in enumerate(specs):
                     self._specs_by_id[spec.id] = spec
                     marker = "●" if spec.id == self._active_id else "○"
+                    
+                    widgets = []
+                    if i == 0:
+                        widgets.append(Static(TIER_LABELS.get(tier, tier.upper()), classes="sov-nav-tier-inline"))
+                    widgets.append(Static(f"[{spec.key}] {marker} {spec.label}", classes="sov-nav-item-text"))
+                    
                     items.append(
                         ListItem(
-                            Static(f"[{spec.key}] {marker} {spec.label}"),
+                            *widgets,
                             id=f"nav-{spec.id}",
                         )
                     )
             yield ListView(*items, id="nav-list")
-            yield Static("1-8 · keys", classes="sov-nav-hint")
+            hint = "1-8 · keys" if not self._lite_mode else "1,7 · keys"
+            yield Static(hint, classes="sov-nav-hint")
 
     def on_mount(self) -> None:
         self._highlight_active()
@@ -58,9 +70,7 @@ class Sidebar(Static):
                 continue
             spec = self._specs_by_id[spec_id]
             marker = "●" if spec_id == self._active_id else "○"
-            item.query_one(Static).update(
-                f"[{spec.key}] {marker} {spec.label}"
-            )
+            item.query_one(".sov-nav-item-text", Static).update(f"[{spec.key}] {marker} {spec.label}")
             if spec_id == self._active_id:
                 item.add_class("-active")
             else:

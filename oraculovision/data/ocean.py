@@ -22,6 +22,8 @@ BLOCK_PAGE_DELAY = 0.15
 OCEAN_INTERVALS: tuple[tuple[str, str, str, str], ...] = (
     ("60s", "hashrate_60s", "shares_60s", "pool_60s"),
     ("5min", "hashrate_300s", "shares_300s", "pool_300s"),
+    ("3hr", "hashrate_10800s", "shares_10800s", "pool_10800s"),
+    ("24hr", "hashrate_86400s", "shares_86400s", "pool_86400s"),
 )
 
 _HASH_UNITS: tuple[tuple[float, str], ...] = (
@@ -47,9 +49,22 @@ class OceanInterval:
 
 
 @dataclass
+class OceanWorker:
+    name: str = ""
+    hashrate_60s: str = "—"
+    hashrate_300s: str = "—"
+    hashrate_10800s: str = "—"
+    hashrate_86400s: str = "—"
+    detected_asic: str = "—"
+    is_active: bool = False
+
+
+@dataclass
 class OceanEarnings:
     est_per_day: str = "—"
     unpaid: str = "—"
+    unpaid_value: float = 0.0
+    payout_threshold: float = 0.001
     est_next_block: str = "—"
     lifetime: str = "—"
     blocks_earned_tides: int = 0
@@ -61,6 +76,16 @@ class OceanEarnings:
 
 
 @dataclass
+class OceanBlock:
+    height: int = 0
+    hash: str = ""
+    timestamp: str = ""
+    miner_address: str = ""
+    worker_name: str = ""
+    reward_sats: int = 0
+
+
+@dataclass
 class OceanAccountStats:
     available: bool = False
     address: str = ""
@@ -68,6 +93,8 @@ class OceanAccountStats:
     tides_shares_pct: str = "—"
     active_workers: int = 0
     earnings: OceanEarnings = field(default_factory=OceanEarnings)
+    workers: list[OceanWorker] = field(default_factory=list)
+    last_pool_block: OceanBlock = field(default_factory=OceanBlock)
     error: str = ""
 
 
@@ -296,6 +323,7 @@ def _build_earnings(
     unpaid = user_full.get("unpaid")
     if unpaid is not None:
         earnings.unpaid = _format_btc_amount(unpaid)
+        earnings.unpaid_value = _parse_float(unpaid) or 0.0
 
     next_block = user_full.get("estimated_total_earn_next_block")
     if next_block is not None:
@@ -358,6 +386,69 @@ def _build_earnings(
     return earnings
 
 
+def guess_asic_model(name: str) -> str:
+    name_lower = name.lower()
+    if "s19" in name_lower:
+        if "xp" in name_lower:
+            return "Antminer S19 XP"
+        if "pro" in name_lower:
+            return "Antminer S19 Pro"
+        return "Antminer S19 Series"
+    if "s21" in name_lower:
+        return "Antminer S21 Series"
+    if "t21" in name_lower:
+        return "Antminer T21"
+    if "m30" in name_lower:
+        if "s" in name_lower:
+            return "Whatsminer M30S"
+        return "Whatsminer M30 Series"
+    if "m50" in name_lower:
+        return "Whatsminer M50 Series"
+    if "m60" in name_lower:
+        return "Whatsminer M60 Series"
+    if "t2t" in name_lower:
+        return "Innosilicon T2T"
+    if "whats" in name_lower:
+        return "Whatsminer ASIC"
+    if "ant" in name_lower:
+        return "Antminer ASIC"
+    if "asic" in name_lower:
+        return "Generic ASIC"
+    return "Unknown/GPU/PC"
+
+
+def _build_workers(user_info: dict | None) -> list[OceanWorker]:
+    workers = []
+    if not user_info:
+        return workers
+    for item in user_info.get("workers", []):
+        if not isinstance(item, dict):
+            continue
+        for name, data in item.items():
+            if not isinstance(data, dict):
+                continue
+            hr_60 = _parse_int(data.get("hashrate_60s")) or 0
+            hr_300 = _parse_int(data.get("hashrate_300s")) or 0
+            hr_10800 = _parse_int(data.get("hashrate_10800s")) or 0
+            hr_86400 = _parse_int(data.get("hashrate_86400s")) or 0
+            active = hr_60 > 0 or hr_300 > 0
+
+            workers.append(
+                OceanWorker(
+                    name=str(name),
+                    hashrate_60s=_format_hashrate(hr_60),
+                    hashrate_300s=_format_hashrate(hr_300),
+                    hashrate_10800s=_format_hashrate(hr_10800),
+                    hashrate_86400s=_format_hashrate(hr_86400),
+                    detected_asic=guess_asic_model(str(name)),
+                    is_active=active,
+                )
+            )
+    # Sort active workers first, then by name
+    workers.sort(key=lambda w: (not w.is_active, w.name))
+    return workers
+
+
 def fetch_ocean_account_stats(address: str, *, cache_ttl: int = DEFAULT_CACHE_TTL) -> OceanAccountStats:
     """Return Ocean account stats for a Bitcoin payout address."""
     normalized = normalize_address(address)
@@ -391,6 +482,29 @@ def fetch_ocean_account_stats(address: str, *, cache_ttl: int = DEFAULT_CACHE_TT
 
     stats.active_workers = _parse_int(user_hr.get("active_worker_count") if user_hr else None) or 0
     stats.earnings = _build_earnings(normalized, user_full, user_info, earnpay)
+    stats.workers = _build_workers(user_info)
+
+    # Parse payout threshold from API if available
+    min_payout_sats = user_full.get("minimum_payout")
+    if min_payout_sats is not None:
+        stats.earnings.payout_threshold = float(min_payout_sats) / 100_000_000
+    else:
+        stats.earnings.payout_threshold = 0.001
+
+    # Fetch last pool block
+    blocks_data = _fetch_json("/v1/blocks?page=0")
+    if blocks_data and isinstance(blocks_data.get("blocks"), list) and blocks_data["blocks"]:
+        b = blocks_data["blocks"][0]
+        ts_parsed = _parse_earning_ts(b.get("ts"))
+        ts_str = ts_parsed.strftime("%Y-%m-%d %H:%M") if ts_parsed else "—"
+        stats.last_pool_block = OceanBlock(
+            height=_parse_int(b.get("height")) or 0,
+            hash=str(b.get("hash") or ""),
+            timestamp=ts_str,
+            miner_address=str(b.get("username") or ""),
+            worker_name=str(b.get("workername") or "—"),
+            reward_sats=int(float(b.get("reward") or 0.0) * 100_000_000),
+        )
 
     tides_user = _parse_int(user_full.get("shares_in_tides"))
     tides_pool = _parse_int(pool_stat.get("current_tides_shares") if pool_stat else None)

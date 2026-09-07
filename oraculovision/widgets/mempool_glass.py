@@ -24,7 +24,7 @@ def _render_glass(comp: MempoolComposition, mempool_tx: int, mempool_mb: float) 
 
     lines = [
         (
-            f"[bold #ffd700]Based on Block Template[/]  "
+            f"[gold bold]Based on Block Template[/]  "
             f"#{comp.template_height}  ·  {comp.analyzed_tx:,} txs  ·  "
             f"{comp.fill_pct:.1f}% max weight"
         ),
@@ -63,12 +63,8 @@ class MempoolGlass(Static):
     MempoolGlass {
         height: auto;
         min-height: 12;
-        border: solid #ffd700;
         padding: 1 2;
     }
-    MempoolGlass .glass-content { color: #e0e0e0; }
-    MempoolGlass.alert-mempool { border: solid #ffd700; }
-    MempoolGlass.alert-spam { border: solid #ff6b6b; }
     """
 
     def __init__(
@@ -82,7 +78,7 @@ class MempoolGlass(Static):
         self.template_service = template_service
         self.cli = cli or template_service.cli
         self.config = config or AppConfig()
-        self.border_title = "MEMPOOL GLASS"
+        self.border_title = "🧊 MEMPOOL GLASS"
         self._last_spam_pct: float = 0.0
 
     def compose(self) -> ComposeResult:

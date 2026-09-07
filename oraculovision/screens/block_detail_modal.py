@@ -10,7 +10,7 @@ from textual.widgets import DataTable, Footer, Header, Label, Static
 
 from oraculovision.analysis.bip110 import BlockAnalysis, TxAnalysis
 from oraculovision.utils.clipboard import copy_to_clipboard
-from oraculovision.utils.markup import safe_markup_text
+from oraculovision.utils.markup import format_pool_badge, safe_markup_text
 
 
 def _flagged_transactions(block: BlockAnalysis) -> list[TxAnalysis]:
@@ -47,38 +47,28 @@ class BlockDetailModal(ModalScreen[None]):
     #block-dialog {
         width: 88;
         height: 88%;
-        background: #111;
-        border: thick #ffd700;
         padding: 1 2;
     }
     #block-meta-scroll {
         height: auto;
         max-height: 14;
     }
-    #block-meta {
-        color: #e0e0e0;
-    }
     #block-tx-header {
-        color: #ffd700;
         text-style: bold;
         padding: 1 0 0 0;
     }
     #block-tx-table {
         height: 1fr;
         min-height: 8;
-        border: solid #333;
     }
     #block-hint {
         height: auto;
-        color: #666;
         padding-top: 1;
     }
     #action-status {
         height: 1;
-        color: #3dd68c;
     }
     .detail-title {
-        color: #ffd700;
         text-style: bold;
     }
     """
@@ -134,7 +124,7 @@ class BlockDetailModal(ModalScreen[None]):
 
     def _meta_text(self) -> str:
         b = self.block
-        miner = safe_markup_text(b.miner_tag)
+        miner = format_pool_badge(b.miner_tag)
         return "\n".join([
             f"Hash:     {b.hash}",
             f"Miner:   {miner}",

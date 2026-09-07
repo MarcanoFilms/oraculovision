@@ -18,7 +18,6 @@ class MiningScreen(BaseScreen):
 
     DEFAULT_CSS = """
     MiningScreen .mining-title {
-        color: #ffd700;
         text-style: bold;
         padding: 0 1 1 1;
     }
@@ -35,7 +34,7 @@ class MiningScreen(BaseScreen):
     def compose(self) -> ComposeResult:
         yield Label("DATUM MINING", classes="mining-title")
         with VerticalScroll():
-            yield DatumMining(id="datum-full", config=self.config)
+            yield DatumMining(id="datum-full", config=self.config, show_treemap=True)
 
     def on_mount(self) -> None:
         self.refresh_screen()

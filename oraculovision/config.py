@@ -51,6 +51,23 @@ class BitcoinConfig:
 @dataclass
 class OceanConfig:
     address: str = ""
+    payout_threshold: float = 0.001
+
+
+@dataclass
+class MiningConfig:
+    """Local mining economics for net-earnings estimates (all opt-in).
+
+    Left at defaults (zeros) the dashboard shows gross earnings only and
+    nothing changes. Fill these in to see pool-fee-adjusted and
+    electricity-adjusted net figures, DeepSea-style.
+    """
+
+    power_watts: float = 0.0
+    power_cost_per_kwh: float = 0.0
+    currency: str = "USD"
+    pool_fee_pct: float = 0.0
+    btc_price: float = 0.0
 
 
 @dataclass
@@ -102,18 +119,41 @@ class ExportConfig:
 
 
 @dataclass
+class UIConfig:
+    """UI presentation and UX settings."""
+
+    mode: str = "pro"
+    theme: str = "oracle"
+    screen_transitions: bool = True
+    splash: bool = True
+    tooltips: bool = True
+    sparkline_samples: int = 60
+
+
+@dataclass
+class PyblockConfig:
+    """PyBLOCK community pool integration (third-party, opt-out)."""
+
+    community_blocks: bool = True
+    api_url: str = "https://pyblock.xyz:8443"
+
+
+@dataclass
 class AppConfig:
     refresh: RefreshConfig = field(default_factory=RefreshConfig)
     alerts: AlertsConfig = field(default_factory=AlertsConfig)
     mempool_glass: MempoolGlassConfig = field(default_factory=MempoolGlassConfig)
     bitcoin: BitcoinConfig = field(default_factory=BitcoinConfig)
     ocean: OceanConfig = field(default_factory=OceanConfig)
+    mining: MiningConfig = field(default_factory=MiningConfig)
     control: ControlConfig = field(default_factory=ControlConfig)
     chain_health: ChainHealthConfig = field(default_factory=ChainHealthConfig)
     block_index: BlockIndexConfig = field(default_factory=BlockIndexConfig)
     export: ExportConfig = field(default_factory=ExportConfig)
     address: AddressConfig = field(default_factory=AddressConfig)
     detectors: DetectorsConfig = field(default_factory=DetectorsConfig)
+    ui: UIConfig = field(default_factory=UIConfig)
+    pyblock: PyblockConfig = field(default_factory=PyblockConfig)
     profiles: dict[str, NodeProfile] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -177,6 +217,15 @@ def load_config() -> AppConfig:
     if ocean := data.get("ocean"):
         cfg.ocean = OceanConfig(
             address=str(ocean.get("address", "")).strip(),
+            payout_threshold=float(ocean.get("payout_threshold", 0.001)),
+        )
+    if mining := data.get("mining"):
+        cfg.mining = MiningConfig(
+            power_watts=max(0.0, float(mining.get("power_watts", 0))),
+            power_cost_per_kwh=max(0.0, float(mining.get("power_cost_per_kwh", 0))),
+            currency=str(mining.get("currency", "USD")),
+            pool_fee_pct=min(100.0, max(0.0, float(mining.get("pool_fee_pct", 0)))),
+            btc_price=max(0.0, float(mining.get("btc_price", 0))),
         )
     if control := data.get("control"):
         cfg.control = ControlConfig(
@@ -210,6 +259,36 @@ def load_config() -> AppConfig:
             cfg.detectors = DetectorsConfig(
                 enabled=[str(name) for name in enabled],
             )
+
+    if ui := data.get("ui"):
+        mode = str(ui.get("mode", "pro")).lower()
+        if mode not in ("lite", "pro"):
+            mode = "pro"
+        theme = str(ui.get("theme", "oracle")).lower()
+        if theme not in ("oracle", "stream", "dark"):
+            theme = "oracle"
+        cfg.ui = UIConfig(
+            mode=mode,
+            theme=theme,
+            screen_transitions=bool(ui.get("screen_transitions", True)),
+            splash=bool(ui.get("splash", True)),
+            tooltips=bool(ui.get("tooltips", True)),
+            sparkline_samples=max(10, int(ui.get("sparkline_samples", 60))),
+        )
+
+    if pyblock := data.get("pyblock"):
+        cfg.pyblock = PyblockConfig(
+            community_blocks=bool(pyblock.get("community_blocks", True)),
+            api_url=str(pyblock.get("api_url", "https://pyblock.xyz:8443")),
+        )
+
+    # Remember the Ocean payout address across restarts when config.toml
+    # doesn't pin one (the user can always change it from the UI).
+    if not cfg.ocean.address:
+        from oraculovision.state import load_ocean_address
+        saved = load_ocean_address()
+        if saved:
+            cfg.ocean.address = saved
 
     cfg.profiles = load_profiles(data)
     cfg.__post_init__()

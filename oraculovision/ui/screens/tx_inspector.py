@@ -44,7 +44,6 @@ class TxInspectorScreen(BaseScreen):
     }
     TxInspectorScreen #tx-header {
         height: auto;
-        color: #ffd700;
         text-style: bold;
         padding: 0 1;
     }
@@ -54,39 +53,20 @@ class TxInspectorScreen(BaseScreen):
     }
     TxInspectorScreen #tx-search {
         width: 1fr;
-        border: solid #ffd700;
     }
     TxInspectorScreen #tx-status {
         height: auto;
         padding: 0 1;
-        color: #aaa;
     }
     TxInspectorScreen #tx-detail-scroll {
         height: 1fr;
         margin: 0 1 1 1;
-        border: solid #333;
         padding: 1 2;
-    }
-    TxInspectorScreen #tx-detail {
-        color: #e0e0e0;
     }
     TxInspectorScreen .search-label {
         width: auto;
         padding-right: 1;
-        color: #ffd700;
         content-align: center middle;
-    }
-    TxInspectorScreen.violation {
-        border: solid #ff6b6b;
-    }
-    TxInspectorScreen.spam-signal {
-        border: solid #ffd700;
-    }
-    TxInspectorScreen.partial {
-        border: solid #888;
-    }
-    TxInspectorScreen.address-mode {
-        border: solid #00dcff;
     }
     """
 

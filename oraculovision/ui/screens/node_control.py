@@ -44,7 +44,6 @@ class NodeControlScreen(BaseScreen):
     }
     NodeControlScreen #control-header {
         height: auto;
-        color: #ffd700;
         text-style: bold;
         padding: 0 1;
     }
@@ -59,7 +58,6 @@ class NodeControlScreen(BaseScreen):
     }
     NodeControlScreen #control-hint {
         height: auto;
-        color: #666;
         padding: 0 1;
     }
     NodeControlScreen #control-body {
@@ -69,14 +67,12 @@ class NodeControlScreen(BaseScreen):
     NodeControlScreen #peers-panel {
         width: 65%;
         height: 100%;
-        border: solid #ffd700;
         padding: 0 1;
     }
     NodeControlScreen #bans-panel {
         width: 35%;
         height: 100%;
         padding-left: 1;
-        border: solid #333;
     }
     NodeControlScreen #peers-table {
         height: 1fr;
@@ -85,23 +81,19 @@ class NodeControlScreen(BaseScreen):
         height: 1fr;
     }
     NodeControlScreen .panel-title {
-        color: #ffd700;
         text-style: bold;
         padding: 1 0 0 0;
     }
     NodeControlScreen #mempool-row {
         height: auto;
         padding: 1 0 0 0;
-        border-top: solid #333;
     }
     NodeControlScreen #mempool-limit-input {
         width: 1fr;
-        border: solid #ffd700;
     }
     NodeControlScreen .field-label {
         width: auto;
         padding-right: 1;
-        color: #ccc;
         content-align: center middle;
     }
     """
